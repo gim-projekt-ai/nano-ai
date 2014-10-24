@@ -6,6 +6,9 @@ wykonawca(właściwości,...) czynność(kiedy,...)(gdzie,...)(właściwości,..
 *q - tego dotyczy pytanie
 *request - zastępuje wykonawcę, zmienia na rozkazujące
 *2be(obiekt) - zastępuje obiekt, mówi, że to nie czynność, a stan
+!uwaga! w czasowniku być można powiedzieć np. że
+kolor kwiatka to zielony, a wtedy:
+flower(*nil) be(*nil)(*nil)([1]) *2be(*nil) [1]color(green)
 
 +reprezentacja właściwości
 +kategorie(poprzez *2be)
