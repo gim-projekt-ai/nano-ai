@@ -10,11 +10,19 @@ import (
 //	"strings"
 	"bufio"
 	"os"
+	"io"
 )
 
 func main() {
-	//fmt.Println("nano 0.0.1")
-	fmt.Println("Napisaleś: "+GetQuery())
+	fmt.Println("nano-ai 0.0.1")
+	var unprocQuery string
+	var purpose int8
+	for {
+		unprocQuery = GetQuery()
+		purpose = Querypurpose(unprocQuery)
+		println(string(purpose)+" "+unprocQuery)
+		io.Exit()
+	}
 
 }
 func GetQuery() string {
@@ -24,4 +32,7 @@ func GetQuery() string {
 	inp = scnr.Text()
 	//fmt.Printf("%s\n", scnr.Text())
 	return inp
+}
+func Querypurpose(query string) int8 {
+	return 1
 }
