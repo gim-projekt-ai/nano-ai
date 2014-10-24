@@ -1,0 +1,27 @@
+wykonawca(właściwości,...) czynność(kiedy,...)(gdzie,...)(właściwości,...) obiekt(właściwości,...)
+
+[] - mówi, że dostało oddzielne informacje, podane na końcu
+*nil - brak informacji
+*itself - zastępuje obiekt, odnosi się do wykonawcy
+*q - tego dotyczy pytanie
+*request - zastępuje wykonawcę, zmienia na rozkazujące
+*2be(obiekt) - zastępuje obiekt, mówi, że to nie czynność, a stan
+
++reprezentacja właściwości
++kategorie(poprzez *2be)
++
+
+A quick, brown fox jumps over the lazy dog
+fox(quick, brown) jump(*nil)(over[1])(*nil) *itself(*nil) [1]dog(lazy)
+
+AI research is highly technical and specialized.
+AI_research(*nil) be(*nil)(*nil)(technical, specialized) *2be(*nil)
+
+Computer is a machine
+computer(*nil) be(*nil)(*nil)(*nil) *2be(machine)
+
+Who made me?
+*q(*nil) make(past)(*nil)(*nil) me(*nil)
+
+Grab the ball!
+*request(*nil) grab(*nil)(*nil)(*nil) ball(*nil)

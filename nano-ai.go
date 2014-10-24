@@ -10,7 +10,6 @@ import (
 //	"strings"
 	"bufio"
 	"os"
-	"io"
 )
 
 func main() {
@@ -20,8 +19,9 @@ func main() {
 	for {
 		unprocQuery = GetQuery()
 		purpose = Querypurpose(unprocQuery)
-		println(string(purpose)+" "+unprocQuery)
-		io.Exit()
+		//typ qypowiedzi: 1 - inform.; 2- pyt. 3 - rozkaz
+		println(purpose, unprocQuery)
+		os.Exit(0)
 	}
 
 }
