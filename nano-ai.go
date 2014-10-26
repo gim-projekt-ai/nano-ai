@@ -6,10 +6,15 @@ Wiktor Kacalski & Mikołaj Kordowski
 package main
 
 import (
-	"bufio"
+	//print
 	"fmt"
+	//pobieranie danych
+	"bufio"
 	"os"
+	//operacje na słowach
 	"strings"
+	//pliki - na razie wystarczy os
+//	"io/ioutil"
 )
 
 func main() {
@@ -23,6 +28,10 @@ func main() {
 		purpose = Querypurpose(unprocQuery)
 		//typ qypowiedzi: 1 - inform.; 2- pyt. 3 - rozkaz
 		println(purpose, unprocQuery)
+		if purpose == 1 {
+			addtodb(unprocQuery)
+		}
+
 		//na razie wychodzi
 		os.Exit(0)
 	}
@@ -30,7 +39,10 @@ func main() {
 }
 func GetQuery() string {
 	var inp string
+	fmt.Printf(";> ")
+	//źródło to konsola
 	scnr := bufio.NewScanner(os.Stdin)
+	//skanujemy i wynik do zmiennej
 	scnr.Scan()
 	inp = scnr.Text()
 	//fmt.Printf("%s\n", scnr.Text())
@@ -46,7 +58,32 @@ func Querypurpose(query string) int8 {
 	if strings.Contains(query, "*request") {
 		querytype = 3
 	}
-	//jeśliu nie zawiera żadnego z pow. to nadal =1
+	//jeśli nie zawiera żadnego z pow. to nadal =1
 	return querytype
 
+}
+func addtodb(query string) {
+	/*f, err := os.Create("db1.txt")
+    errorcheck(err)
+    d2 := []byte(query+"\n")
+    n2, err := f.Write(d2)
+    errorcheck(err)
+    fmt.Printf("wrote %d bytes\n", n2)
+    f.Close()*/
+    // jako odczyt/zapis, dopisywanie, tworzy nowy jeżeli nie ma.
+    f, err := os.OpenFile("db1.txt", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666);
+    errorcheck(err)
+    //zakodowanie linii
+    d2 := []byte(query+"\n")
+    //piszemy
+	n2, err := f.Write(d2) 
+	errorcheck(err)
+	defer fmt.Printf("wrote %d bytes\n", n2)
+	f.Close()
+}
+
+func errorcheck(e error) {
+	if e != nil {
+		panic(e)
+	}
 }
