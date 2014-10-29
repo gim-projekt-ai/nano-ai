@@ -14,7 +14,7 @@ import (
 	//operacje na słowach
 	"strings"
 	//pliki - na razie wystarczy os
-//	"io/ioutil"
+	"io/ioutil"
 )
 
 func main() {
@@ -31,7 +31,10 @@ func main() {
 		if purpose == 1 {
 			addtodb(unprocQuery)
 		}
-
+		if purpose == 2 {
+			fmt.Print(Scandb(unprocQuery) + "\n")
+		}
+		//if purpose == 2 {
 		//na razie wychodzi
 		os.Exit(0)
 	}
@@ -47,6 +50,12 @@ func GetQuery() string {
 	inp = scnr.Text()
 	//fmt.Printf("%s\n", scnr.Text())
 	return inp
+}
+func Scandb(content string) string {
+	dat, err := ioutil.ReadFile("db1.txt")
+	errorcheck(err)
+	data := string(dat)
+	return data
 }
 func Querypurpose(query string) int8 {
 	var querytype int8 = 1
@@ -64,19 +73,19 @@ func Querypurpose(query string) int8 {
 }
 func addtodb(query string) {
 	/*f, err := os.Create("db1.txt")
-    errorcheck(err)
-    d2 := []byte(query+"\n")
-    n2, err := f.Write(d2)
-    errorcheck(err)
-    fmt.Printf("wrote %d bytes\n", n2)
-    f.Close()*/
-    // jako odczyt/zapis, dopisywanie, tworzy nowy jeżeli nie ma.
-    f, err := os.OpenFile("db1.txt", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666);
-    errorcheck(err)
-    //zakodowanie linii
-    d2 := []byte(query+"\n")
-    //piszemy
-	n2, err := f.Write(d2) 
+	  errorcheck(err)
+	  d2 := []byte(query+"\n")
+	  n2, err := f.Write(d2)
+	  errorcheck(err)
+	  fmt.Printf("wrote %d bytes\n", n2)
+	  f.Close()*/
+	// jako odczyt/zapis, dopisywanie, tworzy nowy jeżeli nie ma.
+	f, err := os.OpenFile("db1.txt", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
+	errorcheck(err)
+	//zakodowanie linii
+	d2 := []byte(query + "\n")
+	//piszemy
+	n2, err := f.Write(d2)
 	errorcheck(err)
 	defer fmt.Printf("wrote %d bytes\n", n2)
 	f.Close()
