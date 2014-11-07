@@ -25,6 +25,9 @@ func main() {
 	//główna pętla
 	for {
 		unprocQuery = GetQuery()
+		if unprocQuery == "*quit" {
+			os.Exit(1)
+		}
 		purpose = Querypurpose(unprocQuery)
 		//typ qypowiedzi: 1 - inform.; 2- pyt. 3 - rozkaz
 		println(purpose, unprocQuery)
@@ -32,11 +35,11 @@ func main() {
 			addtodb(unprocQuery)
 		}
 		if purpose == 2 {
-			fmt.Print(Scandb(unprocQuery) + "\n")
+			dbcontents := scandb()
 		}
 		//if purpose == 2 {
 		//na razie wychodzi
-		os.Exit(0)
+		//os.Exit(0)
 	}
 
 }
@@ -51,11 +54,14 @@ func GetQuery() string {
 	//fmt.Printf("%s\n", scnr.Text())
 	return inp
 }
-func Scandb(content string) string {
+func Scandb() string {
 	dat, err := ioutil.ReadFile("db1.txt")
 	errorcheck(err)
 	data := string(dat)
-	return data
+	//informatycznie odpowiednia długość wycinka
+	lines := make([]string,16383) 
+	lines = strings.Split(data, "\n")
+	return lines
 }
 func Querypurpose(query string) int8 {
 	var querytype int8 = 1
