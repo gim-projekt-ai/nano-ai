@@ -3,3 +3,4 @@ dziaa
 nadal dziaa
 dodajem kolejna linire
 abc
+TO jakoś działa

@@ -35,13 +35,21 @@ func main() {
 			addtodb(unprocQuery)
 		}
 		if purpose == 2 {
-			dbcontents := scandb()
+			dbcontents := Scandb()
+			//fmt.Printf("%d\n", dbcontents)
+			placeofq := strings.Index(unprocQuery, "*q")
+			qprefix := unprocQuery[:placeofq]
+			qsuffix := unprocQuery[(placeofq+2):]
+			//fmt.Print(string(placeofq), qprefix,"  ,  ", qsuffix)
+			response := GrepIn(dbcontents, qprefix, qsuffix)
 		}
-		//if purpose == 2 {
 		//na razie wychodzi
 		//os.Exit(0)
 	}
+}
 
+func GrepIn(contents []string, qprefix, qsuffix string) string {
+	
 }
 func GetQuery() string {
 	var inp string
@@ -54,7 +62,7 @@ func GetQuery() string {
 	//fmt.Printf("%s\n", scnr.Text())
 	return inp
 }
-func Scandb() string {
+func Scandb() []string {
 	dat, err := ioutil.ReadFile("db1.txt")
 	errorcheck(err)
 	data := string(dat)
@@ -87,6 +95,7 @@ func addtodb(query string) {
 	  f.Close()*/
 	// jako odczyt/zapis, dopisywanie, tworzy nowy jeżeli nie ma.
 	f, err := os.OpenFile("db1.txt", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
+	defer f.Close()
 	errorcheck(err)
 	//zakodowanie linii
 	d2 := []byte(query + "\n")
@@ -94,7 +103,6 @@ func addtodb(query string) {
 	n2, err := f.Write(d2)
 	errorcheck(err)
 	defer fmt.Printf("wrote %d bytes\n", n2)
-	f.Close()
 }
 
 func errorcheck(e error) {
