@@ -25,6 +25,7 @@ func main() {
 	//główna pętla
 	for {
 		unprocQuery = GetQuery()
+		fmt.Println("------------------Informacje--------------------")
 		if unprocQuery == "*quit" {
 			os.Exit(1)
 		}
@@ -39,17 +40,40 @@ func main() {
 			//fmt.Printf("%d\n", dbcontents)
 			placeofq := strings.Index(unprocQuery, "*q")
 			qprefix := unprocQuery[:placeofq]
-			qsuffix := unprocQuery[(placeofq+2):]
+			qsuffix := unprocQuery[(placeofq + 2):]
 			//fmt.Print(string(placeofq), qprefix,"  ,  ", qsuffix)
 			response := GrepIn(dbcontents, qprefix, qsuffix)
+			fmt.Println("-----------------Info-koniec--------------------")
+			fmt.Printf("%s\n", response[0])
+
 		}
 		//na razie wychodzi
-		//os.Exit(0)
+		//os.Exit(2)
 	}
 }
 
-func GrepIn(contents []string, qprefix, qsuffix string) string {
+func GrepIn(contents []string, qprefix, qsuffix string) [16]string {
+	var itHasPrefix [15]string
+	var answers [16]string
+	var pcount int8 = 0
+	var acount int8 = 0
 	
+	for _, v := range contents {
+		if strings.HasPrefix(v, qprefix) {
+			fmt.Printf("GrepIn Prefix: %s\n", v)
+			itHasPrefix[pcount] = v
+			pcount = pcount + 1
+		}
+	}
+	for _, v := range itHasPrefix {
+		if strings.HasSuffix(v, qsuffix) {
+			fmt.Printf("GrepIn Suffix: %s\n", v)
+			answers[acount] = v
+			acount = acount+1
+		}
+	}
+	//fmt.Printf("%d\n", answers)
+	return answers
 }
 func GetQuery() string {
 	var inp string
@@ -67,7 +91,7 @@ func Scandb() []string {
 	errorcheck(err)
 	data := string(dat)
 	//informatycznie odpowiednia długość wycinka
-	lines := make([]string,16383) 
+	lines := make([]string, 16383)
 	lines = strings.Split(data, "\n")
 	return lines
 }
