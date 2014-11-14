@@ -36,7 +36,7 @@ func main() {
 		}
 		//if purpose == 2 {
 		//na razie wychodzi
-		os.Exit(0)
+		//os.Exit(0)
 	}
 
 }
