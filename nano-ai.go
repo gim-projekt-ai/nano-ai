@@ -25,6 +25,10 @@ func main() {
 	//główna pętla
 	for {
 		unprocQuery = GetQuery()
+		fmt.Println("------------------Informacje--------------------")
+		if unprocQuery == "*quit" {
+			os.Exit(1)
+		}
 		purpose = Querypurpose(unprocQuery)
 		//typ qypowiedzi: 1 - inform.; 2- pyt. 3 - rozkaz
 		println(purpose, unprocQuery)
@@ -32,13 +36,48 @@ func main() {
 			addtodb(unprocQuery)
 		}
 		if purpose == 2 {
-			fmt.Print(Scandb(unprocQuery) + "\n")
-		}
-		//if purpose == 2 {
-		//na razie wychodzi
-		//os.Exit(0)
-	}
+			dbcontents := Scandb()
+			//fmt.Printf("%d\n", dbcontents)
+			placeofq := strings.Index(unprocQuery, "*q")
+			qprefix := unprocQuery[:placeofq]
+			qsuffix := unprocQuery[(placeofq + 2):]
+			//fmt.Print(string(placeofq), qprefix,"  ,  ", qsuffix)
+			response := GrepIn(dbcontents, qprefix, qsuffix)
+			fmt.Println("-----------------Info-koniec--------------------")
+			fmt.Printf("%s\n", response[0])
 
+		}
+		//na razie wychodzi
+<<<<<<< HEAD
+		//os.Exit(0)
+=======
+		//os.Exit(2)
+>>>>>>> 27aa5b39432d41e771d6adf1abaf3868ebe5ce0b
+	}
+}
+
+func GrepIn(contents []string, qprefix, qsuffix string) [16]string {
+	var itHasPrefix [15]string
+	var answers [16]string
+	var pcount int8 = 0
+	var acount int8 = 0
+	
+	for _, v := range contents {
+		if strings.HasPrefix(v, qprefix) {
+			fmt.Printf("GrepIn Prefix: %s\n", v)
+			itHasPrefix[pcount] = v
+			pcount = pcount + 1
+		}
+	}
+	for _, v := range itHasPrefix {
+		if strings.HasSuffix(v, qsuffix) {
+			fmt.Printf("GrepIn Suffix: %s\n", v)
+			answers[acount] = v
+			acount = acount+1
+		}
+	}
+	//fmt.Printf("%d\n", answers)
+	return answers
 }
 func GetQuery() string {
 	var inp string
@@ -51,11 +90,14 @@ func GetQuery() string {
 	//fmt.Printf("%s\n", scnr.Text())
 	return inp
 }
-func Scandb(content string) string {
+func Scandb() []string {
 	dat, err := ioutil.ReadFile("db1.txt")
 	errorcheck(err)
 	data := string(dat)
-	return data
+	//informatycznie odpowiednia długość wycinka
+	lines := make([]string, 16383)
+	lines = strings.Split(data, "\n")
+	return lines
 }
 func Querypurpose(query string) int8 {
 	var querytype int8 = 1
@@ -81,6 +123,7 @@ func addtodb(query string) {
 	  f.Close()*/
 	// jako odczyt/zapis, dopisywanie, tworzy nowy jeżeli nie ma.
 	f, err := os.OpenFile("db1.txt", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
+	defer f.Close()
 	errorcheck(err)
 	//zakodowanie linii
 	d2 := []byte(query + "\n")
@@ -88,7 +131,6 @@ func addtodb(query string) {
 	n2, err := f.Write(d2)
 	errorcheck(err)
 	defer fmt.Printf("wrote %d bytes\n", n2)
-	f.Close()
 }
 
 func errorcheck(e error) {

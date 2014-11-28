@@ -3,6 +3,7 @@ dziaa
 nadal dziaa
 dodajem kolejna linire
 abc
+<<<<<<< HEAD
 
 
 
@@ -11,3 +12,7 @@ snieg jest bialy
 trawa jest zielona
 latem nie ma mrozu
 mroz jest w zimie
+=======
+TO jakoś działa
+odpowiedz to dziala
+>>>>>>> 27aa5b39432d41e771d6adf1abaf3868ebe5ce0b
