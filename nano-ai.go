@@ -57,19 +57,25 @@ func GrepIn(contents []string, qprefix, qsuffix string) [16]string {
 	var answers [16]string
 	var pcount int8 = 0
 	var acount int8 = 0
-	
+
 	for _, v := range contents {
 		if strings.HasPrefix(v, qprefix) {
-			fmt.Printf("GrepIn Prefix: %s\n", v)
-			itHasPrefix[pcount] = v
-			pcount = pcount + 1
+			//naprawienie błędu z pustymi możliwościami
+			if strings.Trim(v, " ") != "" {
+				fmt.Printf("GrepIn Prefix: %s\n", v)
+				itHasPrefix[pcount] = v
+				pcount = pcount + 1
+			}
 		}
 	}
 	for _, v := range itHasPrefix {
 		if strings.HasSuffix(v, qsuffix) {
-			fmt.Printf("GrepIn Suffix: %s\n", v)
-			answers[acount] = v
-			acount = acount+1
+			//naprawienie błędu
+			if strings.Trim(v, " ") != "" {
+				fmt.Printf("GrepIn Suffix: %s\n", v)
+				answers[acount] = v
+				acount = acount + 1
+			}
 		}
 	}
 	//fmt.Printf("%d\n", answers)
@@ -117,7 +123,7 @@ func addtodb(query string) {
 	  errorcheck(err)
 	  fmt.Printf("wrote %d bytes\n", n2)
 	  f.Close()*/
-	// jako odczyt/zapis, dopisywanie, tworzy nowy jeżeli nie ma.
+	// jako odczyt/zapis, dopisywanie, tworzy nowy plik jeżeli nie ma.
 	f, err := os.OpenFile("db1.txt", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
 	defer f.Close()
 	errorcheck(err)
