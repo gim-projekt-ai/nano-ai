@@ -48,11 +48,7 @@ func main() {
 
 		}
 		//na razie wychodzi
-<<<<<<< HEAD
-		//os.Exit(0)
-=======
-		//os.Exit(2)
->>>>>>> 27aa5b39432d41e771d6adf1abaf3868ebe5ce0b
+
 	}
 }
 
