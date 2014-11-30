@@ -47,14 +47,14 @@ func main() {
 			fmt.Printf("%s\n", response[0])
 
 		}
-		//na razie wychodzi
+		//synonimy
 
 	}
 }
 
-func GrepIn(contents []string, qprefix, qsuffix string) [16]string {
-	var itHasPrefix [15]string
-	var answers [16]string
+func GrepIn(contents []string, qprefix, qsuffix string) []string {
+	var itHasPrefix := make([]string, 1, 16000)
+	var answers := make([]string,1, 16001)
 	var pcount int8 = 0
 	var acount int8 = 0
 
@@ -134,6 +134,29 @@ func addtodb(query string) {
 	errorcheck(err)
 	defer fmt.Printf("wrote %d bytes\n", n2)
 }
+
+/*
+func FindAnalogical(query SlicedQuery) []string {
+	abvc
+}
+func BaseWordOf(word string) string {
+	abc
+}
+func RemoveSynonymes(query SlicedQuery) SlicedQuery {
+	abc
+}
+func AddSynonyme(word, base string) {
+	abc
+}
+func GrepForSynonymes {
+	abc
+}
+type SlicedQuery struct {
+	obj, verb, subject string
+}
+
+
+*/
 
 func errorcheck(e error) {
 	if e != nil {
