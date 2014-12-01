@@ -134,25 +134,50 @@ func addtodb(query string) {
 	errorcheck(err)
 	defer fmt.Printf("wrote %d bytes\n", n2)
 }
+func AddNotSynonyme(pair SynonymePair) {
+	f, err := os.OpenFile("nsyn.txt", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
+	defer f.Close()
+	errorcheck(err)
+	//zakodowanie linii
+	d2 := []byte(pair.base + " " + pair.synonyme + "\n")
+	//piszemy
+	n2, err := f.Write(d2)
+	errorcheck(err)
+	defer fmt.Printf("wrote %d bytes\n", n2)
+}
+type SynonymePair struct {
+	base, synonyme string
+}
 
 /*
 func FindAnalogical(query SlicedQuery) []string {
 	abvc
 }
 func BaseWordOf(word string) string {
-	abc
+	
 }
 func RemoveSynonymes(query SlicedQuery) SlicedQuery {
 	abc
 }
-func AddSynonyme(word, base string) {
-	abc
+func AddSynonyme(a SynonymePair) {
+	f, err := os.OpenFile("syn.txt", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
+	defer f.Close()
+	errorcheck(err)
+	//zakodowanie linii
+	d2 := []byte(a.base + " " + a.synonyme + "\n")
+	//piszemy
+	n2, err := f.Write(d2)
+	errorcheck(err)
+	defer fmt.Printf("wrote %d bytes\n", n2)
 }
 func GrepForSynonymes {
 	abc
 }
 type SlicedQuery struct {
+	type int8
 	obj, verb, subject string
+	logic string
+	obj2, verb2, subject2 string
 }
 
 
