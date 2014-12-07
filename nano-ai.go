@@ -17,9 +17,18 @@ import (
 	"io/ioutil"
 )
 
+type SynonymePair struct {
+	base string
+	synonyme string
+}
+
 func main() {
 	fmt.Println("nano-ai 0.0.1")
 	//zmienne
+	//arr := []string{"g","k"}
+	//AddNotSynonyme(arr)
+	//fmt.Printf("%v", Scannsyn())
+	
 	var unprocQuery string
 	var purpose int8
 	//główna pętla
@@ -53,8 +62,8 @@ func main() {
 }
 
 func GrepIn(contents []string, qprefix, qsuffix string) []string {
-	var itHasPrefix := make([]string, 1, 16000)
-	var answers := make([]string,1, 16001)
+	itHasPrefix := make([]string, 160)
+	answers := make([]string, 320)
 	var pcount int8 = 0
 	var acount int8 = 0
 
@@ -134,42 +143,61 @@ func addtodb(query string) {
 	errorcheck(err)
 	defer fmt.Printf("wrote %d bytes\n", n2)
 }
-func AddNotSynonyme(pair SynonymePair) {
+
+func Scansyn() []string {
+	dat, err := ioutil.ReadFile("db1.txt")
+	errorcheck(err)
+	data := string(dat)
+	//informatycznie odpowiednia długość wycinka
+	lines := make([]string, 16383)
+	lines = strings.Split(data, "\n")
+	return lines
+}
+func Scannsyn() []string {
+	dat, err := ioutil.ReadFile("nsyn.txt")
+	errorcheck(err)
+	data := string(dat)
+	//informatycznie odpowiednia długość wycinka
+	lines := make([]string, 16383)
+	lines = strings.Split(data, "\n")
+	return lines
+}
+func AddNotSynonyme(pair []string) {
 	f, err := os.OpenFile("nsyn.txt", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
 	defer f.Close()
 	errorcheck(err)
 	//zakodowanie linii
-	d2 := []byte(pair.base + " " + pair.synonyme + "\n")
+	d2 := []byte(pair[0] + " " + pair[1] + "\n")
 	//piszemy
 	n2, err := f.Write(d2)
 	errorcheck(err)
 	defer fmt.Printf("wrote %d bytes\n", n2)
 }
-type SynonymePair struct {
-	base, synonyme string
+func AddSynonyme(pair []string) {
+	f, err := os.OpenFile("syn.txt", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
+	defer f.Close()
+	errorcheck(err)
+	//zakodowanie linii
+	d2 := []byte(pair[0] + " " + pair[1] + "\n")
+	//piszemy
+	n2, err := f.Write(d2)
+	errorcheck(err)
+	defer fmt.Printf("wrote %d bytes\n", n2)
+}
+func BaseWordOf(word string) string {
+	synonymes := Scansyn()
+	
 }
 
 /*
 func FindAnalogical(query SlicedQuery) []string {
 	abvc
 }
-func BaseWordOf(word string) string {
-	
-}
+
 func RemoveSynonymes(query SlicedQuery) SlicedQuery {
 	abc
 }
-func AddSynonyme(a SynonymePair) {
-	f, err := os.OpenFile("syn.txt", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
-	defer f.Close()
-	errorcheck(err)
-	//zakodowanie linii
-	d2 := []byte(a.base + " " + a.synonyme + "\n")
-	//piszemy
-	n2, err := f.Write(d2)
-	errorcheck(err)
-	defer fmt.Printf("wrote %d bytes\n", n2)
-}
+
 func GrepForSynonymes {
 	abc
 }
