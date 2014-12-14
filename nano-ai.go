@@ -25,9 +25,11 @@ type SynonymePair struct {
 func main() {
 	fmt.Println("nano-ai 0.0.1")
 	//zmienne
-	//arr := []string{"g","k"}
-	//AddNotSynonyme(arr)
-	//fmt.Printf("%v", Scannsyn())
+	//arr := []string{"base","principe"}
+	//AddSynonyme(arr)
+	//fmt.Printf("%v", Scansyn())
+	//fmt.Printf("%v     %v \n", BaseWordOf("base"), BaseWordOf("principe"))
+	//fmt.Printf("%v", RemoveSynonymes("base() is(a) principe(the,same)"))
 	
 	var unprocQuery string
 	var purpose int8
@@ -145,7 +147,7 @@ func addtodb(query string) {
 }
 
 func Scansyn() []string {
-	dat, err := ioutil.ReadFile("db1.txt")
+	dat, err := ioutil.ReadFile("syn.txt")
 	errorcheck(err)
 	data := string(dat)
 	//informatycznie odpowiednia długość wycinka
@@ -186,16 +188,37 @@ func AddSynonyme(pair []string) {
 }
 func BaseWordOf(word string) string {
 	synonymes := Scansyn()
-	
+	line := make([]string, 2)
+	for _, v := range synonymes {
+		line = strings.Split(strings.Trim(v, " "), " ")
+		if line[0] != ""{
+			if line[1] == word {
+				return line[0]
+			}
+			if line[0] == word {
+				return line[0]
+			}
+		}
+		line = make([]string, 2)
+	}
+	return word
 }
-
+func RemoveSynonymes(query string) string {
+	sliced := strings.Split(query, " ")
+	removed := make([]string, 7)
+	var v string
+	for i:=0; i<3; i++ {
+		v = sliced[i]
+		fmt.Println(i)
+		removed[i] = BaseWordOf(v[:strings.Index(v, "(")])+v[strings.Index(v, "("):]
+		fmt.Println(removed)
+	}
+	fmt.Println(sliced)
+	return strings.Join(removed, " ")
+}
 /*
 func FindAnalogical(query SlicedQuery) []string {
 	abvc
-}
-
-func RemoveSynonymes(query SlicedQuery) SlicedQuery {
-	abc
 }
 
 func GrepForSynonymes {
