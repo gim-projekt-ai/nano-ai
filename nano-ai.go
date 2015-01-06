@@ -17,22 +17,17 @@ import (
 	"io/ioutil"
 )
 
-type SynonymePair struct {
-	base     string
-	synonyme string
-}
-
 func main() {
 	fmt.Println("nano-ai 0.2.1")
 	//troche przygotowan
 	fmt.Print("Scanning for unprocessed synonymes...")
 	SynonymeCheck()
 	fmt.Println("done")
-	//zmienne
-	//rly, s1, s2 := PotentialSynonyme(SliceAndTrim("ala() has() cat()"), SliceAndTrim("ela() hasnot() cats()"))
-	//fmt.Printf("%v, %v, %v\n", rly, s1, s2)
-	//SynonymeManagement("dodajem() nastepna() linire()")
 
+	//Procedury testowe
+	//brak
+
+	//zmienne
 	var unprocQuery string
 	var purpose int8
 	//główna pętla
@@ -46,13 +41,17 @@ func main() {
 		purpose = Querypurpose(unprocQuery)
 		//typ qypowiedzi: 1 - inform.; 2- pyt. 3 - rozkaz
 		//println(purpose, unprocQuery)
+		dbcontents := Scandb() /*skanowanie db1 */
+
 		if purpose == 1 {
 			unprocQuery = RemoveSynonymes(unprocQuery)
+			//Trafne spostrzezenie dot. informacji
+			fmt.Println(Type1Response(dbcontents, unprocQuery))
+			//synonimy i zapamietanie
 			SynonymeManagement(unprocQuery)
 			addtodb(unprocQuery)
 		}
 		if purpose == 2 {
-			dbcontents := Scandb()
 			//fmt.Printf("%d\n", dbcontents)
 			placeofq := strings.Index(unprocQuery, "*q")
 			qprefix := unprocQuery[:placeofq]
@@ -60,7 +59,7 @@ func main() {
 			//fmt.Print(string(placeofq), qprefix,"  ,  ", qsuffix)
 			response := GrepIn(dbcontents, qprefix, qsuffix)
 			//fmt.Println("-----------------Info-koniec-----------------")
-			fmt.Printf("%s\n", response[0])
+			fmt.Println(Type2Response(qprefix, qsuffix, response))
 
 		}
 		//synonimy
@@ -115,7 +114,7 @@ func YesNoQuestion(q string) bool {
 	scnr.Scan()
 	inp = scnr.Text()
 	var o bool
-	if (inp[:1] == "t") || (inp[:1] == "y") {
+	if ((inp[:1] == "t") || (inp[:1] == "y")) || ((inp[:1] == "Y") || (inp[:1] == "T")) {
 		o = true
 	} else {
 		o = false
@@ -175,6 +174,62 @@ func SliceAndTrim(query string) []string {
 		}
 	}
 	return trimmed
+}
+func Type1Response(db []string, query string) string {
+	response := "Ok, didn't know that."
+	sQuery := SliceAndTrim(RemoveSynonymes(query))
+	for _, v := range db {
+		v1 := SliceAndTrim(v)
+		if v1[0] == sQuery[0] {
+			response = "And I suppose it " + v1[1] + " " + v1[2] + " also..."
+		}
+		if (v1[1] == sQuery[1]) && (v1[2] == sQuery[2]) {
+			response = "It's true for " + v1[0] + " too!"
+			if v1[0] == sQuery[0] {
+				response = "Don't think I'm stupid. I already know that."
+			}
+		}
+	}
+	return response
+}
+func Type2Response(qp, qs string, matching []string) string {
+	response := ""
+	//qp, qs = strings.Trim(qp, " "), strings.Trim(qs, " ")
+	if (qp == "") && (qs == "") {
+		if YesNoQuestion("Really print all I know? ") {
+			response = strings.Join(matching, ", \n")
+		} else {
+			response = "Ok."
+		}
+	} else if qs == "" {
+		response = qp
+		for _, v := range matching {
+			if strings.Trim(v, " ") != "" {
+				v1 := SliceAndTrim(v)
+				response = response + " " + v1[1] + " " + v1[2] + ",\n"
+			}
+		}
+	} else if qp == "" {
+		/*for _, v := range matching {
+			if strings.Trim(v, " ") != "" {
+				v1 := SliceAndTrim(v)
+				response = response + " " + v1[0] + " " + v1[1] + ",\n"
+			}
+		}
+		response = response + qs*/
+		response= strings.Join(matching, ", ")
+	} else {
+		/*response = qp
+		for _, v := range matching {
+			if strings.Trim(v, " ") != "" {
+				v1 := SliceAndTrim(v)
+				response = response + " " + v1[1] + ", "
+			}
+		}
+		response = response + qs*/
+		response = matching[0]
+	}
+	return response
 }
 
 func Scansyn() []string {
@@ -240,11 +295,11 @@ func RemoveSynonymes(query string) string {
 	var v string
 	for i := 0; i < 3; i++ {
 		v = sliced[i]
-		fmt.Println(i)
+		//fmt.Println(i)
 		removed[i] = BaseWordOf(v[:strings.Index(v, "(")]) + v[strings.Index(v, "("):]
 		//fmt.Println(removed)
 	}
-	fmt.Println(sliced)
+	//fmt.Println(sliced)
 	return strings.Join(removed, " ")
 }
 func PotentialSynonyme(query1, query2 []string) (bool, string, string) {
@@ -329,24 +384,6 @@ func SynonymeCheck() {
 		}
 	}
 }
-
-/*
-func FindAnalogical(query SlicedQuery) []string {
-	abvc
-}
-
-func GrepForSynonymes {
-	abc
-}
-type SlicedQuery struct {
-	type int8
-	obj, verb, subject string
-	logic string
-	obj2, verb2, subject2 string
-}
-
-
-*/
 
 func errorcheck(e error) {
 	if e != nil {
