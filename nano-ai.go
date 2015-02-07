@@ -46,7 +46,7 @@ func main() {
 		if purpose == 1 {
 			unprocQuery = RemoveSynonymes(unprocQuery)
 			//Trafne spostrzezenie dot. informacji
-			fmt.Println(Type1Response(dbcontents, unprocQuery))
+			//fmt.Println(Type1Response(dbcontents, unprocQuery))
 			//synonimy i zapamietanie
 			SynonymeManagement(unprocQuery)
 			addtodb(unprocQuery)
@@ -56,6 +56,9 @@ func main() {
 			placeofq := strings.Index(unprocQuery, "*q")
 			qprefix := unprocQuery[:placeofq]
 			qsuffix := unprocQuery[(placeofq + 2):]
+			
+			qprefix = strings.Trim(qprefix, " _\t\n!.")
+			qsuffix = strings.Trim(qsuffix, " _\t\n!.")
 			//fmt.Print(string(placeofq), qprefix,"  ,  ", qsuffix)
 			response := GrepIn(dbcontents, qprefix, qsuffix)
 			//fmt.Println("-----------------Info-koniec-----------------")
@@ -67,22 +70,27 @@ func main() {
 	}
 }
 
+/* Wyszukiwanie odpowiedzi z zadanym początkiem i końcem. Sprawia problemy, ale tylko czasem.
+ * Daje się okiełznać.
+ */
 func GrepIn(contents []string, qprefix, qsuffix string) []string {
 	itHasPrefix := make([]string, 160)
-	answers := make([]string, 320)
+	answers := make([]string, 160)
 	var pcount int8 = 0
 	var acount int8 = 0
+	//fmt.Printf("qprefix: %s \nqsuffix: %s \n",qprefix, qsuffix)
 
 	for _, v := range contents {
 		if strings.HasPrefix(v, qprefix) {
 			//naprawienie błędu z pustymi możliwościami
 			if strings.Trim(v, " ") != "" {
 				//fmt.Printf("GrepIn Prefix: %s\n", v)
-				itHasPrefix[pcount] = v
+				itHasPrefix[pcount] = strings.Trim(v, " \t\n")
 				pcount = pcount + 1
 			}
 		}
 	}
+	//fmt.Printf("GrepInPrefixMatch: %d\n", itHasPrefix)
 	for _, v := range itHasPrefix {
 		if strings.HasSuffix(v, qsuffix) {
 			//naprawienie błędu
@@ -93,7 +101,17 @@ func GrepIn(contents []string, qprefix, qsuffix string) []string {
 			}
 		}
 	}
-	//fmt.Printf("%d\n", answers)
+	//Nadal puste?
+	/*
+	answ1 := make([]string, 160)
+	var ecount int8 = 0
+	for _, v:=range answers {
+		if (strings.Trim(v," \t\n_")) != "" {
+			answ1[ecount] = v
+			ecount++
+		}
+	}*/
+	//fmt.Printf("GrepInMatch: %d\n", answers)
 	return answers
 }
 func GetQuery() string {
@@ -210,24 +228,24 @@ func Type2Response(qp, qs string, matching []string) string {
 			}
 		}
 	} else if qp == "" {
-		/*for _, v := range matching {
+		for _, v := range matching {
 			if strings.Trim(v, " ") != "" {
 				v1 := SliceAndTrim(v)
 				response = response + " " + v1[0] + " " + v1[1] + ",\n"
 			}
 		}
-		response = response + qs*/
-		response= strings.Join(matching, ", ")
+		response = response + qs
+		//response= strings.Join(matching, ", ")
 	} else {
-		/*response = qp
+		response = qp
 		for _, v := range matching {
 			if strings.Trim(v, " ") != "" {
 				v1 := SliceAndTrim(v)
 				response = response + " " + v1[1] + ", "
 			}
 		}
-		response = response + qs*/
-		response = matching[0]
+		response = response + qs
+		//response = matching[0]
 	}
 	return response
 }
@@ -378,9 +396,9 @@ func SynonymeCheck() {
 	for _, v := range db {
 		if v != "" {
 			d2 := []byte(RemoveSynonymes(v) + "\n")
-			n2, err := f.Write(d2)
+			_, err := f.Write(d2)
 			errorcheck(err)
-			fmt.Printf("wrote %d bytes\n", n2)
+			//fmt.Printf("wrote %d bytes\n", n2)
 		}
 	}
 }
