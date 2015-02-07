@@ -1,3 +1,1 @@
-io.Stdin ---> typ ---> informacja - 1
-               |------>pytanie -2 
-               |------>rozkaz - 3
+This is a tiny (nano) ai program for secondary school project. Please do not distribute it or its derivations until the 20 of March.
