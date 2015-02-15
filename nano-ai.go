@@ -23,6 +23,9 @@ func main() {
 	fmt.Print("Scanning for unprocessed synonymes...")
 	SynonymeCheck()
 	fmt.Println("done")
+	fmt.Print("Removing doubled information...")
+	DoubledInfoCheck()
+	fmt.Println("done")
 
 	//Procedury testowe
 	//brak
@@ -46,7 +49,7 @@ func main() {
 		if purpose == 1 {
 			unprocQuery = RemoveSynonymes(unprocQuery)
 			//Trafne spostrzezenie dot. informacji
-			//fmt.Println(Type1Response(dbcontents, unprocQuery))
+			fmt.Println(Type1Response(dbcontents, unprocQuery))
 			//synonimy i zapamietanie
 			SynonymeManagement(unprocQuery)
 			addtodb(unprocQuery)
@@ -56,7 +59,7 @@ func main() {
 			placeofq := strings.Index(unprocQuery, "*q")
 			qprefix := unprocQuery[:placeofq]
 			qsuffix := unprocQuery[(placeofq + 2):]
-			
+
 			qprefix = strings.Trim(qprefix, " _\t\n!.")
 			qsuffix = strings.Trim(qsuffix, " _\t\n!.")
 			//fmt.Print(string(placeofq), qprefix,"  ,  ", qsuffix)
@@ -103,14 +106,15 @@ func GrepIn(contents []string, qprefix, qsuffix string) []string {
 	}
 	//Nadal puste?
 	/*
-	answ1 := make([]string, 160)
-	var ecount int8 = 0
-	for _, v:=range answers {
-		if (strings.Trim(v," \t\n_")) != "" {
-			answ1[ecount] = v
-			ecount++
+		answ1 := make([]string, 160)
+		var ecount int8 = 0
+		for _, v:=range answers {
+			if (strings.Trim(v," \t\n_")) != "" {
+				answ1[ecount] = v
+				ecount++
+			}
 		}
-	}*/
+	*/
 	//fmt.Printf("GrepInMatch: %d\n", answers)
 	return answers
 }
@@ -204,7 +208,7 @@ func Type1Response(db []string, query string) string {
 		if (v1[1] == sQuery[1]) && (v1[2] == sQuery[2]) {
 			response = "It's true for " + v1[0] + " too!"
 			if v1[0] == sQuery[0] {
-				response = "Don't think I'm stupid. I already know that."
+				response = response + "\nDon't think I'm stupid. I already know that."
 			}
 		}
 	}
@@ -248,6 +252,32 @@ func Type2Response(qp, qs string, matching []string) string {
 		//response = matching[0]
 	}
 	return response
+}
+func DoubledInfoCheck() {
+	db :=Scandb()
+	undoubleddb := make([]string, len(db))
+	count := 0
+	dblcnt := 0
+	for _, v:= range db {
+		if !(in(undoubleddb, strings.Trim(v, " \n\t"))) {
+			undoubleddb[count] = strings.Trim(v, " \t\n")
+			count += 1
+		} else {
+			dblcnt += 1
+		}
+	}
+	f, err := os.Create("db1.txt")
+	defer f.Close()
+	errorcheck(err)
+	for _, v := range undoubleddb {
+		if v != "" {
+			d2 := []byte(RemoveSynonymes(v) + "\n")
+			_, err := f.Write(d2)
+			errorcheck(err)
+			//fmt.Printf("wrote %d bytes\n", n2)
+		}
+	}
+	fmt.Printf("%v found...", (dblcnt-1))
 }
 
 func Scansyn() []string {
@@ -403,8 +433,19 @@ func SynonymeCheck() {
 	}
 }
 
+
+
 func errorcheck(e error) {
 	if e != nil {
 		panic(e)
 	}
+}
+func in(sl []string, s string) bool {
+	var rlyin bool = false
+	for _, v := range sl {
+		if v == s {
+			rlyin = true
+		}
+	}
+	return rlyin
 }
