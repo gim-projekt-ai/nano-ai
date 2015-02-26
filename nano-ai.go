@@ -16,9 +16,12 @@ import (
 	//pliki - na razie wystarczy os
 	"io/ioutil"
 )
+var verbose bool = false
 
 func main() {
 	fmt.Println("nano-ai 0.2.1")
+	t := time.Now
+	log("Nano-AI log: ", t.Local())
 	//troche przygotowan
 	fmt.Print("Scanning for unprocessed synonymes...")
 	SynonymeCheck()
@@ -29,7 +32,8 @@ func main() {
 
 	//Procedury testowe
 	//brak
-
+	
+	verbose = YesNoQuestion("Do you want verbose information? ")
 	//zmienne
 	var unprocQuery string
 	var purpose int8
@@ -37,13 +41,13 @@ func main() {
 	for {
 		unprocQuery = GetQuery()
 
-		//fmt.Println("------------------Informacje--------------------")
+		vout("------------------Informacje--------------------")
 		if unprocQuery == "*quit" {
 			os.Exit(1)
 		}
 		purpose = Querypurpose(unprocQuery)
 		//typ qypowiedzi: 1 - inform.; 2- pyt. 3 - rozkaz
-		//println(purpose, unprocQuery)
+		vout("purpose:  ",purpose, unprocQuery)
 		dbcontents := Scandb() /*skanowanie db1 */
 
 		if purpose == 1 {
@@ -55,16 +59,16 @@ func main() {
 			addtodb(unprocQuery)
 		}
 		if purpose == 2 {
-			//fmt.Printf("%d\n", dbcontents)
+			vout(dbcontents,"\n")
 			placeofq := strings.Index(unprocQuery, "*q")
 			qprefix := unprocQuery[:placeofq]
 			qsuffix := unprocQuery[(placeofq + 2):]
 
 			qprefix = strings.Trim(qprefix, " _\t\n!.")
 			qsuffix = strings.Trim(qsuffix, " _\t\n!.")
-			//fmt.Print(string(placeofq), qprefix,"  ,  ", qsuffix)
+			vout(string(placeofq), qprefix,"  ,  ", qsuffix)
 			response := GrepIn(dbcontents, qprefix, qsuffix)
-			//fmt.Println("-----------------Info-koniec-----------------")
+			vout("-----------------Info-koniec-----------------")
 			fmt.Println(Type2Response(qprefix, qsuffix, response))
 
 		}
@@ -81,7 +85,7 @@ func GrepIn(contents []string, qprefix, qsuffix string) []string {
 	answers := make([]string, 160)
 	var pcount int8 = 0
 	var acount int8 = 0
-	//fmt.Printf("qprefix: %s \nqsuffix: %s \n",qprefix, qsuffix)
+	vout("qprefix:", qprefix ,"\nqsuffix:", qsuffix ,"\n")
 
 	for _, v := range contents {
 		if strings.HasPrefix(v, qprefix) {
@@ -115,7 +119,7 @@ func GrepIn(contents []string, qprefix, qsuffix string) []string {
 			}
 		}
 	*/
-	//fmt.Printf("GrepInMatch: %d\n", answers)
+	vout("GrepInMatch:",answers, "\n")
 	return answers
 }
 func GetQuery() string {
@@ -448,4 +452,18 @@ func in(sl []string, s string) bool {
 		}
 	}
 	return rlyin
+}
+func vout(a ...interface{}) {
+	if verbose {
+		fmt.Println(a...)
+	}
+}
+func log(a ...interface{}) {
+	s = fmt.Sprintln(a...)
+	f, err := os.OpenFile("log.txt", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
+	defer f.Close()
+	errorcheck(err)
+	d2 := []byte(s + "\n")
+	f.Write(d2)
+	errorcheck(err)
 }
