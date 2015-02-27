@@ -15,13 +15,13 @@ import (
 	"strings"
 	//pliki - na razie wystarczy os
 	"io/ioutil"
+	"time"
 )
 var verbose bool = false
 
 func main() {
-	fmt.Println("nano-ai 0.2.1")
-	t := time.Now
-	log("Nano-AI log: ", t.Local())
+	fmt.Println("nano-ai 0.2.4")
+	log("Witaj w logu Nano-AI! 0.2.4")
 	//troche przygotowan
 	fmt.Print("Scanning for unprocessed synonymes...")
 	SynonymeCheck()
@@ -29,6 +29,7 @@ func main() {
 	fmt.Print("Removing doubled information...")
 	DoubledInfoCheck()
 	fmt.Println("done")
+	log("Zakończono przygotowania.")
 
 	//Procedury testowe
 	//brak
@@ -51,6 +52,7 @@ func main() {
 		dbcontents := Scandb() /*skanowanie db1 */
 
 		if purpose == 1 {
+			log("Pobrano",unprocQuery ,", typu informacja.")
 			unprocQuery = RemoveSynonymes(unprocQuery)
 			//Trafne spostrzezenie dot. informacji
 			fmt.Println(Type1Response(dbcontents, unprocQuery))
@@ -60,6 +62,7 @@ func main() {
 		}
 		if purpose == 2 {
 			vout(dbcontents,"\n")
+			log("Pobrano",unprocQuery ,", typu pytanie.")
 			placeofq := strings.Index(unprocQuery, "*q")
 			qprefix := unprocQuery[:placeofq]
 			qsuffix := unprocQuery[(placeofq + 2):]
@@ -97,7 +100,7 @@ func GrepIn(contents []string, qprefix, qsuffix string) []string {
 			}
 		}
 	}
-	//fmt.Printf("GrepInPrefixMatch: %d\n", itHasPrefix)
+	vout("GrepInPrefixMatch: ",itHasPrefix,"\n")
 	for _, v := range itHasPrefix {
 		if strings.HasSuffix(v, qsuffix) {
 			//naprawienie błędu
@@ -120,6 +123,7 @@ func GrepIn(contents []string, qprefix, qsuffix string) []string {
 		}
 	*/
 	vout("GrepInMatch:",answers, "\n")
+	log("Dopasowałem odpowiedzi", answers)
 	return answers
 }
 func GetQuery() string {
@@ -141,8 +145,10 @@ func YesNoQuestion(q string) bool {
 	inp = scnr.Text()
 	var o bool
 	if ((inp[:1] == "t") || (inp[:1] == "y")) || ((inp[:1] == "Y") || (inp[:1] == "T")) {
+		log("Pytanie",q," tak/nie. Udzieliłe(a)ś odp. twierdzącej!")
 		o = true
 	} else {
+		log("Pytanie",q," tak/nie. Udzieliłe(a)ś odp. przeczącej!")
 		o = false
 	}
 	return o
@@ -154,6 +160,7 @@ func Scandb() []string {
 	//informatycznie odpowiednia długość wycinka
 	lines := make([]string, 16383)
 	lines = strings.Split(data, "\n")
+	log("Pobrałem dane z bazy danych...")
 	return lines
 }
 func Querypurpose(query string) int8 {
@@ -163,7 +170,7 @@ func Querypurpose(query string) int8 {
 		querytype = 2
 	}
 	//jak zawiera request to jest rozkazem
-	if strings.Contains(query, "*request") {
+	if strings.Contains(query, "*r") {
 		querytype = 3
 	}
 	//jeśli nie zawiera żadnego z pow. to nadal =1
@@ -187,6 +194,7 @@ func addtodb(query string) {
 	//piszemy
 	n2, err := f.Write(d2)
 	errorcheck(err)
+	log("Dodałem",query,"do bazy danych")
 	defer fmt.Printf("wrote %d bytes\n", n2)
 }
 func SliceAndTrim(query string) []string {
@@ -199,6 +207,7 @@ func SliceAndTrim(query string) []string {
 			trimmed[i] = v[:strings.Index(v, "(")]
 		}
 	}
+	//log("Twoje zdanie zostało podzielone i skrócone.")
 	return trimmed
 }
 func Type1Response(db []string, query string) string {
@@ -276,9 +285,9 @@ func DoubledInfoCheck() {
 	for _, v := range undoubleddb {
 		if v != "" {
 			d2 := []byte(RemoveSynonymes(v) + "\n")
-			_, err := f.Write(d2)
+			n2, err := f.Write(d2)
 			errorcheck(err)
-			//fmt.Printf("wrote %d bytes\n", n2)
+			defer vout("wrote %d bytes\n", n2)
 		}
 	}
 	fmt.Printf("%v found...", (dblcnt-1))
@@ -347,11 +356,11 @@ func RemoveSynonymes(query string) string {
 	var v string
 	for i := 0; i < 3; i++ {
 		v = sliced[i]
-		//fmt.Println(i)
+		vout(i)
 		removed[i] = BaseWordOf(v[:strings.Index(v, "(")]) + v[strings.Index(v, "("):]
-		//fmt.Println(removed)
+		vout(removed)
 	}
-	//fmt.Println(sliced)
+	vout(sliced)
 	return strings.Join(removed, " ")
 }
 func PotentialSynonyme(query1, query2 []string) (bool, string, string) {
@@ -400,7 +409,7 @@ func SynonymeManagement(query string) {
 	allsyn := Scansyn()
 	dbcontents := Scandb()
 	for _, v := range dbcontents {
-		//fmt.Printf("%v; %v\n", v, query)
+		vout(v, query)
 		issyn, base, syn := PotentialSynonyme(SliceAndTrim(v), SliceAndTrim(query))
 		if issyn {
 			if !(strings.Contains(strings.Join(allnsyn, ","), syn)) {
@@ -430,9 +439,9 @@ func SynonymeCheck() {
 	for _, v := range db {
 		if v != "" {
 			d2 := []byte(RemoveSynonymes(v) + "\n")
-			_, err := f.Write(d2)
+			n2, err := f.Write(d2)
 			errorcheck(err)
-			//fmt.Printf("wrote %d bytes\n", n2)
+			defer vout("wrote %d bytes\n", n2)
 		}
 	}
 }
@@ -459,7 +468,9 @@ func vout(a ...interface{}) {
 	}
 }
 func log(a ...interface{}) {
-	s = fmt.Sprintln(a...)
+	t := time.Now()
+	sz :=  fmt.Sprint(a...)
+	s := fmt.Sprint("["+t.String()+"]", sz)
 	f, err := os.OpenFile("log.txt", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
 	defer f.Close()
 	errorcheck(err)
