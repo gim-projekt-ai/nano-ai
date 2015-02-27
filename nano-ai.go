@@ -15,10 +15,16 @@ import (
 	"strings"
 	//pliki - na razie wystarczy os
 	"io/ioutil"
+	"time"
+	//czytanie classif/*
+	"path/filepath"
 )
 
+var verbose bool = false
+
 func main() {
-	fmt.Println("nano-ai 0.2.1")
+	fmt.Println("nano-ai 0.2.4")
+	log("Witaj w logu Nano-AI! 0.2.4")
 	//troche przygotowan
 	fmt.Print("Scanning for unprocessed synonymes...")
 	SynonymeCheck()
@@ -26,10 +32,19 @@ func main() {
 	fmt.Print("Removing doubled information...")
 	DoubledInfoCheck()
 	fmt.Println("done")
+	fmt.Print("Removing doubled classification...")
+	DoubledClassificationCheck()
+	fmt.Println("found...done")
+	log("Zakończono przygotowania.")
 
 	//Procedury testowe
-	//brak
+	//AddClassification("nice", "eat")
+	//match, _ := filepath.Glob("classif/*")
+	//fmt.Println(match)
+	//ManageClassification("evil", "bad")
+	//fmt.Println(GetClassification("evil"))
 
+	verbose = YesNoQuestion("Do you want verbose information? ")
 	//zmienne
 	var unprocQuery string
 	var purpose int8
@@ -37,16 +52,17 @@ func main() {
 	for {
 		unprocQuery = GetQuery()
 
-		//fmt.Println("------------------Informacje--------------------")
+		vout("------------------Informacje--------------------")
 		if unprocQuery == "*quit" {
 			os.Exit(1)
 		}
 		purpose = Querypurpose(unprocQuery)
 		//typ qypowiedzi: 1 - inform.; 2- pyt. 3 - rozkaz
-		//println(purpose, unprocQuery)
+		vout("purpose:  ", purpose, unprocQuery)
 		dbcontents := Scandb() /*skanowanie db1 */
 
 		if purpose == 1 {
+			log("Pobrano", unprocQuery, ", typu informacja.")
 			unprocQuery = RemoveSynonymes(unprocQuery)
 			//Trafne spostrzezenie dot. informacji
 			fmt.Println(Type1Response(dbcontents, unprocQuery))
@@ -55,16 +71,17 @@ func main() {
 			addtodb(unprocQuery)
 		}
 		if purpose == 2 {
-			//fmt.Printf("%d\n", dbcontents)
+			vout(dbcontents, "\n")
+			log("Pobrano", unprocQuery, ", typu pytanie.")
 			placeofq := strings.Index(unprocQuery, "*q")
 			qprefix := unprocQuery[:placeofq]
 			qsuffix := unprocQuery[(placeofq + 2):]
 
 			qprefix = strings.Trim(qprefix, " _\t\n!.")
 			qsuffix = strings.Trim(qsuffix, " _\t\n!.")
-			//fmt.Print(string(placeofq), qprefix,"  ,  ", qsuffix)
+			vout(string(placeofq), qprefix, "  ,  ", qsuffix)
 			response := GrepIn(dbcontents, qprefix, qsuffix)
-			//fmt.Println("-----------------Info-koniec-----------------")
+			vout("-----------------Info-koniec-----------------")
 			fmt.Println(Type2Response(qprefix, qsuffix, response))
 
 		}
@@ -81,7 +98,7 @@ func GrepIn(contents []string, qprefix, qsuffix string) []string {
 	answers := make([]string, 160)
 	var pcount int8 = 0
 	var acount int8 = 0
-	//fmt.Printf("qprefix: %s \nqsuffix: %s \n",qprefix, qsuffix)
+	vout("qprefix:", qprefix, "\nqsuffix:", qsuffix, "\n")
 
 	for _, v := range contents {
 		if strings.HasPrefix(v, qprefix) {
@@ -93,7 +110,7 @@ func GrepIn(contents []string, qprefix, qsuffix string) []string {
 			}
 		}
 	}
-	//fmt.Printf("GrepInPrefixMatch: %d\n", itHasPrefix)
+	vout("GrepInPrefixMatch: ", itHasPrefix, "\n")
 	for _, v := range itHasPrefix {
 		if strings.HasSuffix(v, qsuffix) {
 			//naprawienie błędu
@@ -115,7 +132,8 @@ func GrepIn(contents []string, qprefix, qsuffix string) []string {
 			}
 		}
 	*/
-	//fmt.Printf("GrepInMatch: %d\n", answers)
+	vout("GrepInMatch:", answers, "\n")
+	log("Dopasowałem odpowiedzi", answers)
 	return answers
 }
 func GetQuery() string {
@@ -137,8 +155,10 @@ func YesNoQuestion(q string) bool {
 	inp = scnr.Text()
 	var o bool
 	if ((inp[:1] == "t") || (inp[:1] == "y")) || ((inp[:1] == "Y") || (inp[:1] == "T")) {
+		log("Pytanie", q, " tak/nie. Udzieliłe(a)ś odp. twierdzącej!")
 		o = true
 	} else {
+		log("Pytanie", q, " tak/nie. Udzieliłe(a)ś odp. przeczącej!")
 		o = false
 	}
 	return o
@@ -150,6 +170,7 @@ func Scandb() []string {
 	//informatycznie odpowiednia długość wycinka
 	lines := make([]string, 16383)
 	lines = strings.Split(data, "\n")
+	log("Pobrałem dane z bazy danych...")
 	return lines
 }
 func Querypurpose(query string) int8 {
@@ -159,7 +180,7 @@ func Querypurpose(query string) int8 {
 		querytype = 2
 	}
 	//jak zawiera request to jest rozkazem
-	if strings.Contains(query, "*request") {
+	if strings.Contains(query, "*r") {
 		querytype = 3
 	}
 	//jeśli nie zawiera żadnego z pow. to nadal =1
@@ -183,6 +204,7 @@ func addtodb(query string) {
 	//piszemy
 	n2, err := f.Write(d2)
 	errorcheck(err)
+	log("Dodałem", query, "do bazy danych")
 	defer fmt.Printf("wrote %d bytes\n", n2)
 }
 func SliceAndTrim(query string) []string {
@@ -195,6 +217,7 @@ func SliceAndTrim(query string) []string {
 			trimmed[i] = v[:strings.Index(v, "(")]
 		}
 	}
+	//log("Twoje zdanie zostało podzielone i skrócone.")
 	return trimmed
 }
 func Type1Response(db []string, query string) string {
@@ -254,11 +277,11 @@ func Type2Response(qp, qs string, matching []string) string {
 	return response
 }
 func DoubledInfoCheck() {
-	db :=Scandb()
+	db := Scandb()
 	undoubleddb := make([]string, len(db))
 	count := 0
 	dblcnt := 0
-	for _, v:= range db {
+	for _, v := range db {
 		if !(in(undoubleddb, strings.Trim(v, " \n\t"))) {
 			undoubleddb[count] = strings.Trim(v, " \t\n")
 			count += 1
@@ -272,12 +295,12 @@ func DoubledInfoCheck() {
 	for _, v := range undoubleddb {
 		if v != "" {
 			d2 := []byte(RemoveSynonymes(v) + "\n")
-			_, err := f.Write(d2)
+			n2, err := f.Write(d2)
 			errorcheck(err)
-			//fmt.Printf("wrote %d bytes\n", n2)
+			defer vout("wrote %d bytes\n", n2)
 		}
 	}
-	fmt.Printf("%v found...", (dblcnt-1))
+	fmt.Printf("%v found...", (dblcnt - 1))
 }
 
 func Scansyn() []string {
@@ -343,11 +366,11 @@ func RemoveSynonymes(query string) string {
 	var v string
 	for i := 0; i < 3; i++ {
 		v = sliced[i]
-		//fmt.Println(i)
+		vout(i)
 		removed[i] = BaseWordOf(v[:strings.Index(v, "(")]) + v[strings.Index(v, "("):]
-		//fmt.Println(removed)
+		vout(removed)
 	}
-	//fmt.Println(sliced)
+	vout(sliced)
 	return strings.Join(removed, " ")
 }
 func PotentialSynonyme(query1, query2 []string) (bool, string, string) {
@@ -396,7 +419,7 @@ func SynonymeManagement(query string) {
 	allsyn := Scansyn()
 	dbcontents := Scandb()
 	for _, v := range dbcontents {
-		//fmt.Printf("%v; %v\n", v, query)
+		vout(v, query)
 		issyn, base, syn := PotentialSynonyme(SliceAndTrim(v), SliceAndTrim(query))
 		if issyn {
 			if !(strings.Contains(strings.Join(allnsyn, ","), syn)) {
@@ -426,14 +449,79 @@ func SynonymeCheck() {
 	for _, v := range db {
 		if v != "" {
 			d2 := []byte(RemoveSynonymes(v) + "\n")
-			_, err := f.Write(d2)
+			n2, err := f.Write(d2)
 			errorcheck(err)
-			//fmt.Printf("wrote %d bytes\n", n2)
+			defer vout("wrote %d bytes\n", n2)
 		}
 	}
 }
 
+func AddClassification(word, phrase string) {
+	f, err := os.OpenFile("classif/"+word, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
+	defer f.Close()
+	errorcheck(err)
+	//zakodowanie linii
+	d2 := []byte(phrase + "\n")
+	//piszemy
+	n2, err := f.Write(d2)
+	errorcheck(err)
+	log("Sklasyfikowałem ", phrase, " jako ", word)
+	defer fmt.Printf("wrote %d bytes\n", n2)
+}
+func GetClassification(word string) []string {
+	classiflist, err := filepath.Glob("classif/*")
+	errorcheck(err)
+	//informatycznie odpowiednia długość wycinka
+	lines := make([]string, 16383)
+	if in(classiflist, "classif/"+word) {
+		dat, err := ioutil.ReadFile("classif/" + word)
+		errorcheck(err)
+		data := string(dat)
+		lines = strings.Split(data, "\n")
+		return lines
+	}
+	return []string{""}
+}
+func DoubledClassificationCheck() {
+	classiflist, err := filepath.Glob("classif/*")
+	errorcheck(err)
+	for _, vv := range classiflist {
+		db := GetClassification(vv[(strings.Index(vv, "/") + 1):])
+		undoubleddb := make([]string, len(db))
+		count := 0
+		dblcnt := 0
+		for _, v := range db {
+			if !(in(undoubleddb, strings.Trim(v, " \n\t"))) {
+				undoubleddb[count] = strings.Trim(v, " \t\n")
+				count += 1
+			} else {
+				dblcnt += 1
+			}
+		}
+		f, err := os.Create(vv)
+		defer f.Close()
+		errorcheck(err)
+		for _, v := range undoubleddb {
+			if v != "" {
+				d2 := []byte(v + "\n")
+				n2, err := f.Write(d2)
+				errorcheck(err)
+				defer vout("wrote %d bytes\n", n2)
+			}
+		}
+		fmt.Printf("%v, ", (dblcnt - 1))
+	}
+}
 
+func ManageClassification(word, phrase string) {
+	otherwords := GetClassification(phrase)
+	AddClassification(word, phrase)
+	for _, v := range otherwords {
+		if v != "" {
+			AddClassification(word, v)
+		}
+	}
+}
 
 func errorcheck(e error) {
 	if e != nil {
@@ -448,4 +536,20 @@ func in(sl []string, s string) bool {
 		}
 	}
 	return rlyin
+}
+func vout(a ...interface{}) {
+	if verbose {
+		fmt.Println(a...)
+	}
+}
+func log(a ...interface{}) {
+	t := time.Now()
+	sz := fmt.Sprint(a...)
+	s := fmt.Sprint("["+t.String()+"]", sz)
+	f, err := os.OpenFile("log.txt", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
+	defer f.Close()
+	errorcheck(err)
+	d2 := []byte(s + "\n")
+	f.Write(d2)
+	errorcheck(err)
 }
