@@ -16,7 +16,10 @@ import (
 	//pliki - na razie wystarczy os
 	"io/ioutil"
 	"time"
+	//czytanie classif/*
+	"path/filepath"
 )
+
 var verbose bool = false
 
 func main() {
@@ -29,11 +32,18 @@ func main() {
 	fmt.Print("Removing doubled information...")
 	DoubledInfoCheck()
 	fmt.Println("done")
+	fmt.Print("Removing doubled classification...")
+	DoubledClassificationCheck()
+	fmt.Println("found...done")
 	log("Zakończono przygotowania.")
 
 	//Procedury testowe
-	//brak
-	
+	//AddClassification("nice", "eat")
+	//match, _ := filepath.Glob("classif/*")
+	//fmt.Println(match)
+	//ManageClassification("evil", "bad")
+	//fmt.Println(GetClassification("evil"))
+
 	verbose = YesNoQuestion("Do you want verbose information? ")
 	//zmienne
 	var unprocQuery string
@@ -48,11 +58,11 @@ func main() {
 		}
 		purpose = Querypurpose(unprocQuery)
 		//typ qypowiedzi: 1 - inform.; 2- pyt. 3 - rozkaz
-		vout("purpose:  ",purpose, unprocQuery)
+		vout("purpose:  ", purpose, unprocQuery)
 		dbcontents := Scandb() /*skanowanie db1 */
 
 		if purpose == 1 {
-			log("Pobrano",unprocQuery ,", typu informacja.")
+			log("Pobrano", unprocQuery, ", typu informacja.")
 			unprocQuery = RemoveSynonymes(unprocQuery)
 			//Trafne spostrzezenie dot. informacji
 			fmt.Println(Type1Response(dbcontents, unprocQuery))
@@ -61,15 +71,15 @@ func main() {
 			addtodb(unprocQuery)
 		}
 		if purpose == 2 {
-			vout(dbcontents,"\n")
-			log("Pobrano",unprocQuery ,", typu pytanie.")
+			vout(dbcontents, "\n")
+			log("Pobrano", unprocQuery, ", typu pytanie.")
 			placeofq := strings.Index(unprocQuery, "*q")
 			qprefix := unprocQuery[:placeofq]
 			qsuffix := unprocQuery[(placeofq + 2):]
 
 			qprefix = strings.Trim(qprefix, " _\t\n!.")
 			qsuffix = strings.Trim(qsuffix, " _\t\n!.")
-			vout(string(placeofq), qprefix,"  ,  ", qsuffix)
+			vout(string(placeofq), qprefix, "  ,  ", qsuffix)
 			response := GrepIn(dbcontents, qprefix, qsuffix)
 			vout("-----------------Info-koniec-----------------")
 			fmt.Println(Type2Response(qprefix, qsuffix, response))
@@ -88,7 +98,7 @@ func GrepIn(contents []string, qprefix, qsuffix string) []string {
 	answers := make([]string, 160)
 	var pcount int8 = 0
 	var acount int8 = 0
-	vout("qprefix:", qprefix ,"\nqsuffix:", qsuffix ,"\n")
+	vout("qprefix:", qprefix, "\nqsuffix:", qsuffix, "\n")
 
 	for _, v := range contents {
 		if strings.HasPrefix(v, qprefix) {
@@ -100,7 +110,7 @@ func GrepIn(contents []string, qprefix, qsuffix string) []string {
 			}
 		}
 	}
-	vout("GrepInPrefixMatch: ",itHasPrefix,"\n")
+	vout("GrepInPrefixMatch: ", itHasPrefix, "\n")
 	for _, v := range itHasPrefix {
 		if strings.HasSuffix(v, qsuffix) {
 			//naprawienie błędu
@@ -122,7 +132,7 @@ func GrepIn(contents []string, qprefix, qsuffix string) []string {
 			}
 		}
 	*/
-	vout("GrepInMatch:",answers, "\n")
+	vout("GrepInMatch:", answers, "\n")
 	log("Dopasowałem odpowiedzi", answers)
 	return answers
 }
@@ -145,10 +155,10 @@ func YesNoQuestion(q string) bool {
 	inp = scnr.Text()
 	var o bool
 	if ((inp[:1] == "t") || (inp[:1] == "y")) || ((inp[:1] == "Y") || (inp[:1] == "T")) {
-		log("Pytanie",q," tak/nie. Udzieliłe(a)ś odp. twierdzącej!")
+		log("Pytanie", q, " tak/nie. Udzieliłe(a)ś odp. twierdzącej!")
 		o = true
 	} else {
-		log("Pytanie",q," tak/nie. Udzieliłe(a)ś odp. przeczącej!")
+		log("Pytanie", q, " tak/nie. Udzieliłe(a)ś odp. przeczącej!")
 		o = false
 	}
 	return o
@@ -194,7 +204,7 @@ func addtodb(query string) {
 	//piszemy
 	n2, err := f.Write(d2)
 	errorcheck(err)
-	log("Dodałem",query,"do bazy danych")
+	log("Dodałem", query, "do bazy danych")
 	defer fmt.Printf("wrote %d bytes\n", n2)
 }
 func SliceAndTrim(query string) []string {
@@ -267,11 +277,11 @@ func Type2Response(qp, qs string, matching []string) string {
 	return response
 }
 func DoubledInfoCheck() {
-	db :=Scandb()
+	db := Scandb()
 	undoubleddb := make([]string, len(db))
 	count := 0
 	dblcnt := 0
-	for _, v:= range db {
+	for _, v := range db {
 		if !(in(undoubleddb, strings.Trim(v, " \n\t"))) {
 			undoubleddb[count] = strings.Trim(v, " \t\n")
 			count += 1
@@ -290,7 +300,7 @@ func DoubledInfoCheck() {
 			defer vout("wrote %d bytes\n", n2)
 		}
 	}
-	fmt.Printf("%v found...", (dblcnt-1))
+	fmt.Printf("%v found...", (dblcnt - 1))
 }
 
 func Scansyn() []string {
@@ -446,7 +456,72 @@ func SynonymeCheck() {
 	}
 }
 
+func AddClassification(word, phrase string) {
+	f, err := os.OpenFile("classif/"+word, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
+	defer f.Close()
+	errorcheck(err)
+	//zakodowanie linii
+	d2 := []byte(phrase + "\n")
+	//piszemy
+	n2, err := f.Write(d2)
+	errorcheck(err)
+	log("Sklasyfikowałem ", phrase, " jako ", word)
+	defer fmt.Printf("wrote %d bytes\n", n2)
+}
+func GetClassification(word string) []string {
+	classiflist, err := filepath.Glob("classif/*")
+	errorcheck(err)
+	//informatycznie odpowiednia długość wycinka
+	lines := make([]string, 16383)
+	if in(classiflist, "classif/"+word) {
+		dat, err := ioutil.ReadFile("classif/" + word)
+		errorcheck(err)
+		data := string(dat)
+		lines = strings.Split(data, "\n")
+		return lines
+	}
+	return []string{""}
+}
+func DoubledClassificationCheck() {
+	classiflist, err := filepath.Glob("classif/*")
+	errorcheck(err)
+	for _, vv := range classiflist {
+		db := GetClassification(vv[(strings.Index(vv, "/") + 1):])
+		undoubleddb := make([]string, len(db))
+		count := 0
+		dblcnt := 0
+		for _, v := range db {
+			if !(in(undoubleddb, strings.Trim(v, " \n\t"))) {
+				undoubleddb[count] = strings.Trim(v, " \t\n")
+				count += 1
+			} else {
+				dblcnt += 1
+			}
+		}
+		f, err := os.Create(vv)
+		defer f.Close()
+		errorcheck(err)
+		for _, v := range undoubleddb {
+			if v != "" {
+				d2 := []byte(v + "\n")
+				n2, err := f.Write(d2)
+				errorcheck(err)
+				defer vout("wrote %d bytes\n", n2)
+			}
+		}
+		fmt.Printf("%v, ", (dblcnt - 1))
+	}
+}
 
+func ManageClassification(word, phrase string) {
+	otherwords := GetClassification(phrase)
+	AddClassification(word, phrase)
+	for _, v := range otherwords {
+		if v != "" {
+			AddClassification(word, v)
+		}
+	}
+}
 
 func errorcheck(e error) {
 	if e != nil {
@@ -469,7 +544,7 @@ func vout(a ...interface{}) {
 }
 func log(a ...interface{}) {
 	t := time.Now()
-	sz :=  fmt.Sprint(a...)
+	sz := fmt.Sprint(a...)
 	s := fmt.Sprint("["+t.String()+"]", sz)
 	f, err := os.OpenFile("log.txt", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
 	defer f.Close()
