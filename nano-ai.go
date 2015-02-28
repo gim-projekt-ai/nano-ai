@@ -38,11 +38,8 @@ func main() {
 	log("Zakończono przygotowania.")
 
 	//Procedury testowe
-	//AddClassification("nice", "eat")
-	//match, _ := filepath.Glob("classif/*")
-	//fmt.Println(match)
-	//ManageClassification("evil", "bad")
-	//fmt.Println(GetClassification("evil"))
+	tr, sly2, sly3 := SliceOnly("school() hav() teacher(lots)")
+	fmt.Println(tr, sly2, sly3)
 
 	verbose = YesNoQuestion("Do you want verbose information? ")
 	//zmienne
@@ -54,6 +51,7 @@ func main() {
 
 		vout("------------------Informacje--------------------")
 		if unprocQuery == "*quit" {
+			log("Do widzenia!")
 			os.Exit(1)
 		}
 		purpose = Querypurpose(unprocQuery)
@@ -62,7 +60,7 @@ func main() {
 		dbcontents := Scandb() /*skanowanie db1 */
 
 		if purpose == 1 {
-			log("Pobrano", unprocQuery, ", typu informacja.")
+			log("Pobrano ", unprocQuery, ", typu informacja.")
 			unprocQuery = RemoveSynonymes(unprocQuery)
 			//Trafne spostrzezenie dot. informacji
 			fmt.Println(Type1Response(dbcontents, unprocQuery))
@@ -72,7 +70,7 @@ func main() {
 		}
 		if purpose == 2 {
 			vout(dbcontents, "\n")
-			log("Pobrano", unprocQuery, ", typu pytanie.")
+			log("Pobrano ", unprocQuery, ", typu pytanie.")
 			placeofq := strings.Index(unprocQuery, "*q")
 			qprefix := unprocQuery[:placeofq]
 			qsuffix := unprocQuery[(placeofq + 2):]
@@ -136,6 +134,7 @@ func GrepIn(contents []string, qprefix, qsuffix string) []string {
 	log("Dopasowałem odpowiedzi", answers)
 	return answers
 }
+
 func GetQuery() string {
 	var inp string
 	fmt.Printf(";> ")
@@ -175,17 +174,28 @@ func Scandb() []string {
 }
 func Querypurpose(query string) int8 {
 	var querytype int8 = 1
+	//jak zawiera *be to jest zdaniem klasyfikującym
+	if strings.Contains(query, "*be") {
+		querytype = 12
+	}
 	//jak zawiera *q to jest pytaniem
 	if strings.Contains(query, "*q") {
 		querytype = 2
+	}
+	//jeśli zawiera *why to jest pytaniem dlaczego
+	if strings.Contains(query, "*why") {
+		querytype = 22
 	}
 	//jak zawiera request to jest rozkazem
 	if strings.Contains(query, "*r") {
 		querytype = 3
 	}
+	//jeśli zawiera *rly to jest pytaniem tak/nie
+	if strings.Contains(query, "*rly") {
+		querytype = 21
+	}
 	//jeśli nie zawiera żadnego z pow. to nadal =1
 	return querytype
-
 }
 func addtodb(query string) {
 	/*f, err := os.Create("db1.txt")
@@ -220,13 +230,33 @@ func SliceAndTrim(query string) []string {
 	//log("Twoje zdanie zostało podzielone i skrócone.")
 	return trimmed
 }
+func SliceOnly(query string) ([]string, []string, []string) {
+	vout("slicing ", query)
+	sliced := strings.Split(query, " ")
+	trimmed := make([]string, 7)
+	rawy2, rawy3 := "", ""
+	if strings.Trim(query, " \n\t") != "" {
+		var v string
+		for i := 0; i < 3; i++ {
+			v = sliced[i]
+			trimmed[i] = v[:strings.Index(v, "(")]
+		}
+		rawy2 = sliced[1][(strings.Index(sliced[1], "(") + 1) : len(sliced[1])-1]
+		rawy3 = sliced[2][(strings.Index(sliced[2], "(") + 1) : len(sliced[2])-1]
+
+	}
+	slicedy2 := strings.Split(rawy2, ",")
+	slicedy3 := strings.Split(rawy3, ",")
+	return trimmed, slicedy2, slicedy3
+}
 func Type1Response(db []string, query string) string {
 	response := "Ok, didn't know that."
 	sQuery := SliceAndTrim(RemoveSynonymes(query))
 	for _, v := range db {
-		v1 := SliceAndTrim(v)
+		v1, y2s, y3s := SliceOnly(v)
+		y2, y3 := strings.Join(y2s, " "), strings.Join(y3s, " ")
 		if v1[0] == sQuery[0] {
-			response = "And I suppose it " + v1[1] + " " + v1[2] + " also..."
+			response = "And I suppose it " + y2 + " " + v1[1] + " " + y3 + " " + v1[2] + " also..."
 		}
 		if (v1[1] == sQuery[1]) && (v1[2] == sQuery[2]) {
 			response = "It's true for " + v1[0] + " too!"
@@ -250,15 +280,17 @@ func Type2Response(qp, qs string, matching []string) string {
 		response = qp
 		for _, v := range matching {
 			if strings.Trim(v, " ") != "" {
-				v1 := SliceAndTrim(v)
-				response = response + " " + v1[1] + " " + v1[2] + ",\n"
+				v1, y2s, y3s := SliceOnly(v)
+				y2, y3 := strings.Join(y2s, " "), strings.Join(y3s, " ")
+				response = response + " " + y2 + " " + v1[1] + " " + y3 + " " + v1[2] + ",\n"
 			}
 		}
 	} else if qp == "" {
 		for _, v := range matching {
 			if strings.Trim(v, " ") != "" {
-				v1 := SliceAndTrim(v)
-				response = response + " " + v1[0] + " " + v1[1] + ",\n"
+				v1, y2s, _ := SliceOnly(v)
+				y2 := strings.Join(y2s, " ")
+				response = response + " " + v1[0] + " " + y2 + " " + v1[1] + ",\n"
 			}
 		}
 		response = response + qs
@@ -267,8 +299,9 @@ func Type2Response(qp, qs string, matching []string) string {
 		response = qp
 		for _, v := range matching {
 			if strings.Trim(v, " ") != "" {
-				v1 := SliceAndTrim(v)
-				response = response + " " + v1[1] + ", "
+				v1, y2s, _ := SliceOnly(v)
+				y2 := strings.Join(y2s, " ")
+				response = response + " " + y2 + " " + v1[1] + ", "
 			}
 		}
 		response = response + qs
@@ -512,7 +545,6 @@ func DoubledClassificationCheck() {
 		fmt.Printf("%v, ", (dblcnt - 1))
 	}
 }
-
 func ManageClassification(word, phrase string) {
 	otherwords := GetClassification(phrase)
 	AddClassification(word, phrase)
