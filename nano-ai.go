@@ -38,8 +38,8 @@ func main() {
 	log("Zakończono przygotowania.")
 
 	//Procedury testowe
-	tr, sly2, sly3 := SliceOnly("school() hav() teacher(lots)")
-	fmt.Println(tr, sly2, sly3)
+	lst, tr := GrepRly("ankara() *be(*rly) capital(turkey)")
+	fmt.Println(Type21Response(lst, tr))
 
 	verbose = YesNoQuestion("Do you want verbose information? ")
 	//zmienne
@@ -83,7 +83,12 @@ func main() {
 			fmt.Println(Type2Response(qprefix, qsuffix, response))
 
 		}
-		//synonimy
+		if purpose == 21 {
+			log("Pobrano ", unprocQuery, ", typu pytanie tak/nie.")
+			resp, isrly := GrepRly (unprocQuery)
+			vout(resp, isrly)
+			fmt.Println(Type21Response(resp, isrly))
+		}
 
 	}
 }
@@ -134,7 +139,48 @@ func GrepIn(contents []string, qprefix, qsuffix string) []string {
 	log("Dopasowałem odpowiedzi", answers)
 	return answers
 }
-
+func GrepRly(query string) ([]string, bool) {
+	trimmed, y2, y3 := SliceOnly(query)
+	responses := make([]string, 32)
+	respptr := 0
+	var yesorno bool = false
+	db := Scandb()
+	for _, v := range db {
+		if !(strings.Trim(v, " \n\t") == "") {
+			trimv, y2v, y3v := SliceOnly(v)
+			if trimmed[0] == trimv[0] {
+				if in(y2v, "*not") {
+					if in(y2, "*not") {
+						responses[respptr] = v
+						yesorno = true
+						respptr += 1
+					}
+				} else {
+					if !(in(y2, "*not")) {
+						responses[respptr] = v
+						yesorno = true
+						respptr += 1
+					}
+				}
+			} else if (trimmed[2] == trimv[2])&&(slicesEq(y3, y3v)) {
+				if in(y2v, "*not") {
+					if in(y2, "*not") {
+						responses[respptr] = v
+						yesorno = true
+						respptr += 1
+					}
+				} else {
+					if !(in(y2, "*not")) {
+						responses[respptr] = v
+						yesorno = true
+						respptr += 1
+					}
+				}
+			}
+		}
+	}
+	return responses, yesorno
+}
 func GetQuery() string {
 	var inp string
 	fmt.Printf(";> ")
@@ -306,6 +352,15 @@ func Type2Response(qp, qs string, matching []string) string {
 		}
 		response = response + qs
 		//response = matching[0]
+	}
+	return response
+}
+func Type21Response(causes []string, istrue bool) string {
+	var response string
+	if istrue {
+		response = "Yes. "+strings.Join(causes, "")
+	} else {
+		response = "No. Haven't heard 'bout that."
 	}
 	return response
 }
@@ -584,4 +639,15 @@ func log(a ...interface{}) {
 	d2 := []byte(s + "\n")
 	f.Write(d2)
 	errorcheck(err)
+}
+func slicesEq(a, b []string) bool {
+    if len(a) != len(b) {
+        return false
+    }
+    for i := range a {
+        if a[i] != b[i] {
+            return false
+        }
+    }
+    return true
 }
