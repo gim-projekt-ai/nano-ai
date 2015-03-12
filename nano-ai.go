@@ -56,7 +56,12 @@ func main() {
 		vout("------------------Informacje--------------------")
 		if unprocQuery == "*quit" {
 			log("Do widzenia!")
-			os.Exit(1)
+			os.Exit(0)
+		}
+		if unprocQuery = "*empty" {
+			log("Puste zdanie!")
+			fmt.Println("Please coop.")
+			continue
 		}
 		purpose = Querypurpose(unprocQuery)
 		//typ qypowiedzi: 1 - inform.; 2- pyt. 3 - rozkaz
