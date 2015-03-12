@@ -18,7 +18,7 @@ import (
 	"time"
 	//czytanie classif/*
 	"path/filepath"
-
+	//NLP
 	"convert_new"
 )
 
@@ -27,7 +27,7 @@ var textformatting bool = false
 
 func main() {
 	fmt.Println("nano-ai 0.2.4")
-	log("Witaj w logu Nano-AI! 0.2.4")
+	log("Witaj w logu Nano-AI! 0.3.0")
 	//troche przygotowan
 	fmt.Print("Scanning for unprocessed synonymes...")
 	SynonymeCheck()
@@ -41,8 +41,7 @@ func main() {
 	log("Zakończono przygotowania.")
 
 	//Procedury testowe
-	lst, tr := GrepRly("ankara() *be(*rly) capital(turkey)")
-	fmt.Println(Type21Response(lst, tr))
+	fmt.Println(ListClassification())
 
 	verbose = YesNoQuestion("Do you want verbose information? ")
 	textformatting = YesNoQuestion("Do you want the text to be NLP-ed?")
@@ -58,7 +57,7 @@ func main() {
 			log("Do widzenia!")
 			os.Exit(0)
 		}
-		if unprocQuery = "*empty" {
+		if unprocQuery == "*empty" {
 			log("Puste zdanie!")
 			fmt.Println("Please coop.")
 			continue
@@ -88,7 +87,7 @@ func main() {
 			SynonymeManagement(unprocQuery)
 			addtodb(unprocQuery)
 			AddClassification(kon, pocz)
-		}			
+		}
 		if purpose == 2 {
 			vout(dbcontents, "\n")
 			log("Pobrano ", unprocQuery, ", typu pytanie.")
@@ -96,19 +95,28 @@ func main() {
 			qprefix := unprocQuery[:placeofq]
 			qsuffix := unprocQuery[(placeofq + 2):]
 
-			qprefix = strings.Trim(qprefix, " _\t\n!.()")
-			qsuffix = strings.Trim(qsuffix, " _\t\n!.()")
+			qprefix = strings.Trim(qprefix, " _\t\n!.")
+			qsuffix = strings.Trim(qsuffix, " _\t\n!.")
+			if qprefix == "()" {
+				qprefix = ""
+			}
+			if qsuffix == "()" {
+				qsuffix = ""
+			}
 			vout(string(placeofq), qprefix, "  ,  ", qsuffix)
 			response := GrepIn(dbcontents, qprefix, qsuffix)
 			vout("-----------------Info-koniec-----------------")
 			fmt.Println(Type2Response(qprefix, qsuffix, response))
-
 		}
 		if purpose == 21 {
 			log("Pobrano ", unprocQuery, ", typu pytanie tak/nie.")
 			resp, isrly := GrepRly(unprocQuery)
 			vout(resp, isrly)
 			fmt.Println(Type21Response(resp, isrly))
+		}
+		if purpose == 22 {
+			slicedQ := SliceAndTrim(unprocQuery)
+			fmt.Println(GrepWhy(slicedQ[0], slicedQ[2]))
 		}
 
 	}
@@ -569,6 +577,8 @@ func SynonymeCheck() {
 }
 
 func AddClassification(word, phrase string) {
+	word = strings.Trim(word, " \t\n()")
+	phrase = strings.Trim(phrase, " \t\n()")
 	f, err := os.OpenFile("classif/"+word, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
 	defer f.Close()
 	errorcheck(err)
@@ -632,6 +642,30 @@ func ManageClassification(word, phrase string) {
 			AddClassification(word, v)
 		}
 	}
+}
+func ListClassification() []string {
+	classiflist, err := filepath.Glob("classif/*")
+	errorcheck(err)
+	retlist := make([]string, len(classiflist))
+	for i, v := range classiflist {
+		retlist[i] = v[strings.Index(v, "/")+1:]
+	}
+	return retlist
+}
+
+func GrepWhy(w1, w2 string) []string {
+	causes := make([]string, 128)
+	ccount := 0
+	w2contents := GetClassification(w2)
+	currentclass := make([]string, 64)
+	for _, v:= range w2contents {
+		currentclass = GetClassification(v)
+		if in(currentclass, w1) {
+			causes[ccount] = v
+			ccount += 1
+		}
+	}
+	return causes
 }
 
 func errorcheck(e error) {
