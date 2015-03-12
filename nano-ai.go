@@ -68,6 +68,18 @@ func main() {
 			SynonymeManagement(unprocQuery)
 			addtodb(unprocQuery)
 		}
+		if purpose == 12 {
+			log("Pobrano ", unprocQuery, ", typu informacja klasyfikująca.")
+			unprocQuery = RemoveSynonymes(unprocQuery)
+			pocz := unprocQuery[:strings.Index(unprocQuery, "*be")]
+			kon := unprocQuery[(strings.Index(unprocQuery, "*be") + 4):]
+			//Trafne spostrzezenie dot. informacji
+			fmt.Println(Type1Response(dbcontents, unprocQuery))
+			//synonimy i zapamietanie
+			SynonymeManagement(unprocQuery)
+			addtodb(unprocQuery)
+			AddClassification(kon, pocz)
+		}			
 		if purpose == 2 {
 			vout(dbcontents, "\n")
 			log("Pobrano ", unprocQuery, ", typu pytanie.")
