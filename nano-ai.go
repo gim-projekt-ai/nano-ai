@@ -18,9 +18,12 @@ import (
 	"time"
 	//czytanie classif/*
 	"path/filepath"
+
+	"convert_new"
 )
 
 var verbose bool = false
+var textformatting bool = false
 
 func main() {
 	fmt.Println("nano-ai 0.2.4")
@@ -42,6 +45,7 @@ func main() {
 	fmt.Println(Type21Response(lst, tr))
 
 	verbose = YesNoQuestion("Do you want verbose information? ")
+	textformatting = YesNoQuestion("Do you want the text to be NLP-ed?")
 	//zmienne
 	var unprocQuery string
 	var purpose int8
@@ -87,8 +91,8 @@ func main() {
 			qprefix := unprocQuery[:placeofq]
 			qsuffix := unprocQuery[(placeofq + 2):]
 
-			qprefix = strings.Trim(qprefix, " _\t\n!.")
-			qsuffix = strings.Trim(qsuffix, " _\t\n!.")
+			qprefix = strings.Trim(qprefix, " _\t\n!.()")
+			qsuffix = strings.Trim(qsuffix, " _\t\n!.()")
 			vout(string(placeofq), qprefix, "  ,  ", qsuffix)
 			response := GrepIn(dbcontents, qprefix, qsuffix)
 			vout("-----------------Info-koniec-----------------")
@@ -97,7 +101,7 @@ func main() {
 		}
 		if purpose == 21 {
 			log("Pobrano ", unprocQuery, ", typu pytanie tak/nie.")
-			resp, isrly := GrepRly (unprocQuery)
+			resp, isrly := GrepRly(unprocQuery)
 			vout(resp, isrly)
 			fmt.Println(Type21Response(resp, isrly))
 		}
@@ -174,7 +178,7 @@ func GrepRly(query string) ([]string, bool) {
 						respptr += 1
 					}
 				}
-			} else if (trimmed[2] == trimv[2])&&(slicesEq(y3, y3v)) {
+			} else if (trimmed[2] == trimv[2]) && (slicesEq(y3, y3v)) {
 				if in(y2v, "*not") {
 					if in(y2, "*not") {
 						responses[respptr] = v
@@ -201,6 +205,9 @@ func GetQuery() string {
 	//skanujemy i wynik do zmiennej
 	scnr.Scan()
 	inp = scnr.Text()
+	if textformatting {
+		inp = convert_new.Format(inp)
+	}
 	//fmt.Printf("%s\n", scnr.Text())
 	return inp
 }
@@ -370,7 +377,7 @@ func Type2Response(qp, qs string, matching []string) string {
 func Type21Response(causes []string, istrue bool) string {
 	var response string
 	if istrue {
-		response = "Yes. "+strings.Join(causes, "")
+		response = "Yes. " + strings.Join(causes, "")
 	} else {
 		response = "No. Haven't heard 'bout that."
 	}
@@ -653,13 +660,13 @@ func log(a ...interface{}) {
 	errorcheck(err)
 }
 func slicesEq(a, b []string) bool {
-    if len(a) != len(b) {
-        return false
-    }
-    for i := range a {
-        if a[i] != b[i] {
-            return false
-        }
-    }
-    return true
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }
