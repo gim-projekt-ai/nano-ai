@@ -1,6 +1,5 @@
 /*MIT licence
-(c) Jan Piskorski, Bartosz Deptuła, Mateusz Boruń
-Wiktor Kacalski & Mikołaj Kordowski
+(c) Jan Piskorski
 */
 
 package main
@@ -20,14 +19,19 @@ import (
 	"path/filepath"
 	//NLP
 	"convert_new"
+	
+	//Zadania
+	"aiRequests"
+	//losowanie
+	"math/rand"
 )
 
 var verbose bool = false
 var textformatting bool = false
 
 func main() {
-	fmt.Println("nano-ai 0.2.4")
-	log("Witaj w logu Nano-AI! 0.3.0")
+	fmt.Println("nano-ai 0.3.1")
+	log("Witaj w logu Nano-AI! 0.3.1")
 	//troche przygotowan
 	fmt.Print("Scanning for unprocessed synonymes...")
 	SynonymeCheck()
@@ -66,7 +70,7 @@ func main() {
 		//typ qypowiedzi: 1 - inform.; 2- pyt. 3 - rozkaz
 		vout("purpose:  ", purpose, unprocQuery)
 		dbcontents := Scandb() /*skanowanie db1 */
-
+		
 		if purpose == 1 {
 			log("Pobrano ", unprocQuery, ", typu informacja.")
 			unprocQuery = RemoveSynonymes(unprocQuery)
@@ -75,6 +79,11 @@ func main() {
 			//synonimy i zapamietanie
 			SynonymeManagement(unprocQuery)
 			addtodb(unprocQuery)
+		}
+		if purpose == 101 {
+			welcomes := []string{"Hi, nice to meet you!", "Hello!",
+				"Welcome!", "Hi!", "Guten Tag!", "Good Morning!"}
+			fmt.Println(welcomes[rand.Intn(len(welcomes))])
 		}
 		if purpose == 12 {
 			log("Pobrano ", unprocQuery, ", typu informacja klasyfikująca.")
@@ -118,7 +127,13 @@ func main() {
 			slicedQ := SliceAndTrim(unprocQuery)
 			fmt.Println(GrepWhy(slicedQ[0], slicedQ[2]))
 		}
-
+		if purpose == 3 {
+			slicedQ := SliceAndTrim(unprocQuery)
+			slicedQ[1] = strings.Trim(slicedQ[1], " \n\t()/,.;!?")
+			slicedQ[2] = strings.Trim(slicedQ[2], " \n\t()/,.;!?")
+			vout("\""+slicedQ[1]+"\""+slicedQ[2]+"\"")
+			aiRequests.Run(strings.Join([]string{slicedQ[1], slicedQ[2]}, " "))
+		}
 	}
 }
 
@@ -272,9 +287,14 @@ func Querypurpose(query string) int8 {
 	if strings.Contains(query, "*rly") {
 		querytype = 21
 	}
+	//przywitania
+	if strings.Contains(query, "*hi") {
+		querytype = 101
+	}
 	//jeśli nie zawiera żadnego z pow. to nadal =1
 	return querytype
 }
+
 func addtodb(query string) {
 	/*f, err := os.Create("db1.txt")
 	  errorcheck(err)
