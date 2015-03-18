@@ -30,13 +30,8 @@ var verbose bool = false
 var textformatting bool = false
 
 func main() {
-<<<<<<< HEAD
 	fmt.Println("nano-ai 0.3.1")
 	log("Witaj w logu Nano-AI! 0.3.1")
-=======
-	fmt.Println("nano-ai 0.3.0")
-	log("Witaj w logu Nano-AI! 0.3.0")
->>>>>>> 05d696defb2b86a80d2ae9fff161991cc313ef5f
 	//troche przygotowan
 	fmt.Print("Scanning for unprocessed synonymes...")
 	SynonymeCheck()
