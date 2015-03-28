@@ -4,25 +4,21 @@ import (
 	"fmt"
 	"github.com/ldmberman/GoEV3/Motor"
 	"time"
-	//"tinyev3lib"
 )
 
 func main() {
-	fmt.Println("Forward")
-	//var tim string
-	//_, _ = fmt.Scanf("%s", &tim)
-	go Motor.Run(Motor.OutPortA, 75)
-	go Motor.Run(Motor.OutPortB, 75)
-	//tim2, _ := time.ParseDuration(tim+"s")
-	time.Sleep(time.Second*2)
+	fmt.Println("Backward")
+	Motor.Run(Motor.OutPortA, -50)
+	Motor.Run(Motor.OutPortB, -50)
+	time.Sleep(time.Second*3)
 	/*
 	for {
-		if Motor.CurrentSpeed(Motor.OutPortA) < 10 {
+		if Motor.CurrentSpeed(Motor.OutPortA) > -10 {
 			Motor.Stop(Motor.OutPortA)
 			Motor.Stop(Motor.OutPortB)
 			break
 		}
-		if Motor.CurrentSpeed(Motor.OutPortB) < 10 {
+		if Motor.CurrentSpeed(Motor.OutPortB) > -10 {
 			Motor.Stop(Motor.OutPortA)
 			Motor.Stop(Motor.OutPortB)
 			break
@@ -32,6 +28,3 @@ func main() {
 	Motor.Stop(Motor.OutPortA)
 	Motor.Stop(Motor.OutPortB)
 }
- 
-
- 

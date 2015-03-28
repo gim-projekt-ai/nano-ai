@@ -15,7 +15,7 @@ import (
 	//pliki - na razie wystarczy os
 	"io/ioutil"
 	"time"
-	//czytanie classif/*
+	//czytanie classif
 	"path/filepath"
 	//NLP
 	"convert_new"
@@ -125,7 +125,7 @@ func main() {
 		}
 		if purpose == 22 {
 			slicedQ := SliceAndTrim(unprocQuery)
-			fmt.Println(GrepWhy(slicedQ[0], slicedQ[2]))
+			fmt.Println(Type22Response(GrepWhy(slicedQ[0], slicedQ[2])))
 		}
 		if purpose == 3 {
 			slicedQ := SliceAndTrim(unprocQuery)
@@ -192,29 +192,29 @@ func GrepRly(query string) ([]string, bool) {
 	for _, v := range db {
 		if !(strings.Trim(v, " \n\t") == "") {
 			trimv, y2v, y3v := SliceOnly(v)
-			if trimmed[0] == trimv[0] {
-				if in(y2v, "*not") {
-					if in(y2, "*not") {
+			if (trimmed[0] == trimv[0])&&(trimmed[2] == trimv[2]) {
+				if in(y2v, "*not")|| in(y3v, "*not") {
+					if in(y2, "*not")|| in(y3, "*not") {
 						responses[respptr] = v
 						yesorno = true
 						respptr += 1
 					}
 				} else {
-					if !(in(y2, "*not")) {
+					if !(in(y2, "*not"))||(!(in(y3, "*not"))) {
 						responses[respptr] = v
 						yesorno = true
 						respptr += 1
 					}
 				}
 			} else if (trimmed[2] == trimv[2]) && (slicesEq(y3, y3v)) {
-				if in(y2v, "*not") {
-					if in(y2, "*not") {
+				if in(y2v, "*not")|| in(y3v, "*not") {
+					if in(y2, "*not")|| in(y3, "*not") {
 						responses[respptr] = v
 						yesorno = true
 						respptr += 1
 					}
 				} else {
-					if !(in(y2, "*not")) {
+					if !(in(y2, "*not"))||(!(in(y3, "*not"))) {
 						responses[respptr] = v
 						yesorno = true
 						respptr += 1
@@ -415,6 +415,17 @@ func Type21Response(causes []string, istrue bool) string {
 		response = "No. Haven't heard 'bout that."
 	}
 	return response
+}
+func Type22Response (arguments []string) string {
+	resp := "Because it's... "
+	respl := ""
+	vout(arguments)
+	for _, v := range arguments {
+		if strings.Trim(v, " \n\t") != "" {
+			respl += A"it's "+ v+", "
+		}
+	}
+	return resp+respl
 }
 func DoubledInfoCheck() {
 	db := Scandb()
