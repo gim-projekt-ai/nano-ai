@@ -28,10 +28,11 @@ import (
 
 var verbose bool = false
 var textformatting bool = false
+var onRobot bool = false
 
 func main() {
-	fmt.Println("nano-ai 0.3.1")
-	log("Witaj w logu Nano-AI! 0.3.1")
+	fmt.Println("nano-ai 0.3.2")
+	log("Witaj w logu Nano-AI! 0.3.2")
 	//troche przygotowan
 	fmt.Print("Scanning for unprocessed synonymes...")
 	SynonymeCheck()
@@ -49,6 +50,7 @@ func main() {
 
 	verbose = YesNoQuestion("Do you want verbose information? ")
 	textformatting = YesNoQuestion("Do you want the text to be NLP-ed?")
+	onRobot = YesNoQuestion("Is the program running on a robot?")
 	//zmienne
 	var unprocQuery string
 	var purpose int8
@@ -132,7 +134,7 @@ func main() {
 			slicedQ[1] = strings.Trim(slicedQ[1], " \n\t()/,.;!?")
 			slicedQ[2] = strings.Trim(slicedQ[2], " \n\t()/,.;!?")
 			vout("\""+slicedQ[1]+"\""+slicedQ[2]+"\"")
-			aiRequests.Run(strings.Join([]string{slicedQ[1], slicedQ[2]}, " "))
+			aiRequests.Run(strings.Join([]string{slicedQ[1], slicedQ[2]}, " "), !(onRobot))
 		}
 	}
 }
@@ -294,7 +296,6 @@ func Querypurpose(query string) int8 {
 	//jeśli nie zawiera żadnego z pow. to nadal =1
 	return querytype
 }
-
 func addtodb(query string) {
 	/*f, err := os.Create("db1.txt")
 	  errorcheck(err)
@@ -388,7 +389,7 @@ func Type2Response(qp, qs string, matching []string) string {
 			if strings.Trim(v, " ") != "" {
 				v1, y2s, _ := SliceOnly(v)
 				y2 := strings.Join(y2s, " ")
-				response = response + " " + v1[0] + " " + y2 + " " + v1[1] + ",\n"
+				response = response + " " + v1[0] + " " + v1[1] + " " + y2 + ",\n"
 			}
 		}
 		response = response + qs
@@ -410,7 +411,11 @@ func Type2Response(qp, qs string, matching []string) string {
 func Type21Response(causes []string, istrue bool) string {
 	var response string
 	if istrue {
-		response = "Yes. " + strings.Join(causes, "")
+		response = "Yes. "
+		for _, v:=range causes {
+			response += BracketsToEnglish(v)
+		}
+		
 	} else {
 		response = "No. Haven't heard 'bout that."
 	}
@@ -422,7 +427,7 @@ func Type22Response (arguments []string) string {
 	vout(arguments)
 	for _, v := range arguments {
 		if strings.Trim(v, " \n\t") != "" {
-			respl += A"it's "+ v+", "
+			respl += "it's "+ v+", "
 		}
 	}
 	return resp+respl
@@ -697,6 +702,22 @@ func GrepWhy(w1, w2 string) []string {
 		}
 	}
 	return causes
+}
+func BracketsToEnglish(sentence string) string {
+	rsentence := ""
+	if strings.Trim(sentence, " \n\t()*!?.") != "" {
+	xes, y2, y3 := SliceOnly(sentence)
+	if xes[1]=="*be" {
+		xes[1] = "is"
+	}
+	y2joined := strings.Join(y2, " ")
+	y3joined := strings.Join(y3, " ")
+	
+	rsentence = xes[0]
+	rsentence += " "+xes[1]+" "+y2joined
+	rsentence += " the "+y3joined+" "+xes[2]+". "
+}
+	return rsentence
 }
 
 func errorcheck(e error) {
