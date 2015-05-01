@@ -17,11 +17,11 @@ import (
 	"time"
 	//czytanie classif
 	"path/filepath"
-	//NLP
-	"convert_new"
+	//NLP - niestandardowa
+	"github.com/gim-projekt-ai/nanoai-libs/convert_new"
 	
-	//Zadania
-	"aiRequests"
+	//Zadania - niestandardowa
+	"github.com/gim-projekt-ai/nanoai-libs/aiRequests"
 	//losowanie
 	"math/rand"
 )
