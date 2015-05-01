@@ -1,5 +1,5 @@
 This is a tiny (nano) ai program for secondary school project. 
-Please do not distribute it or its derivations untill 1st April.
+Please do not distribute it or its derivatives untill 1st April.
 
 Niewielka sztuczna inteligencja napisana przez uczniów gimnazjum
  Im. Ignacego Domeyki w Warszawie na projekt gimnazjalny.
