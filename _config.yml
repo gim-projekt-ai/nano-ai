@@ -1,0 +1,8 @@
+title: Nano-ai
+description: an Eliza-like very small AI. It is supposed to be language-independent and more clever than Eliza.
+google_analytics: 
+show_downloads: true
+theme: jekyll-theme-leap-day
+
+gems:
+  - jekyll-mentions
